@@ -22,12 +22,13 @@ jobs:
           distribution: 'temurin'
           java-version: 21
 
-      - name: Find Android SDK
+      - name: Install Gradle
         run: |
-          echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
-          echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-unset}"
-          ls -la /usr/lib/android-sdk/ 2>&1 | head -5 || echo "/usr/lib/android-sdk not found"
-          ls -la $HOME/android-sdk/ 2>&1 | head -5 || echo "$HOME/android-sdk not found"
+          curl -s "https://get.sdkman.io" | bash
+          source "$HOME/.sdkman/bin/sdkman-init.sh"
+          sdk install gradle 8.7
+          sdk default gradle 8.7
+          gradle --version
 
       - name: Accept Android SDK licenses
         run: |
@@ -43,13 +44,12 @@ jobs:
       - name: Configure local.properties
         run: |
           SDK_DIR="${ANDROID_HOME:-/usr/lib/android-sdk}"
-          echo "sdk.dir=$SDK_DIR" > VigilApp/local.properties
-          cat VigilApp/local.properties
+          echo "sdk.dir=$SDK_DIR" > local.properties
+          cat local.properties
 
       - name: Build Debug APK with Gradle
         run: |
           source "$HOME/.sdkman/bin/sdkman-init.sh"
-          cd VigilApp
           gradle :app:assembleDebug \
             --no-daemon \
             -Dorg.gradle.jvmargs=-Xmx2g \
@@ -61,6 +61,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vigil-debug-apk
-          path: VigilApp/app/build/outputs/apk/debug/app-debug.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
         if: always()

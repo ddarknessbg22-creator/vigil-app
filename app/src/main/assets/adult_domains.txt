@@ -1,0 +1,40 @@
+# VIGIL Bundled Adult Domain Blocklist
+# Seed list for offline protection. Updated automatically via blocklist updates.
+# Format: one domain per line. Lines starting with # are comments.
+
+# Major adult tube sites
+pornhub.com
+xvideos.com
+xnxx.com
+xhamster.com
+redtube.com
+youporn.com
+tnaflix.com
+spankbang.com
+youjizz.com
+tube8.com
+
+# Adult forums and communities
+literotica.com
+lushstories.com
+
+# Additional adult domains
+onlyfans.com
+manyvids.com
+chaturbate.com
+myfreecams.com
+livejasmin.com
+stripchat.com
+cam4.com
+camsoda.com
+adultfriendfinder.com
+ashleymadison.com
+
+# Common adult TLD patterns (explicit)
+xxx.com
+xxx.net
+xxx.org
+sex.com
+porn.com
+adult.com
+erotica.com

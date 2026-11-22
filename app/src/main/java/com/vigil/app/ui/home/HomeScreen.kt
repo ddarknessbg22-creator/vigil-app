@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -73,7 +74,7 @@ fun ProtectionStatusCard(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = if (isProtected) Icons.Default.Shield else Icons.Default.ShieldOff,
+                    imageVector = if (isProtected) Shield else ShieldOff,
                     contentDescription = if (isProtected) "Protection Active" else "Protection Inactive",
                     tint = if (isProtected) VigilPalette.Success else VigilPalette.Danger,
                     modifier = Modifier.size(48.dp)
@@ -96,13 +97,13 @@ fun ProtectionStatusCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                StatItem(value = daysProtected, label = "Days Protected", icon = Icons.Default.CalendarToday)
+                StatItem(value = daysProtected, label = "Days Protected", icon = CalendarToday)
                 VerticalDivider(
                     modifier = Modifier.fillMaxHeight().width(1.dp),
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                     thickness = 1.dp
                 )
-                StatItem(value = blockedToday, label = "Blocked Today", icon = Icons.Default.Block)
+                StatItem(value = blockedToday, label = "Blocked Today", icon = Block)
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(
@@ -209,9 +210,9 @@ fun QuickStatsRow() {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        QuickStatCard("This Week", "6", "check-ins", Icons.Default.CheckCircle, VigilPalette.Success)
-        QuickStatCard("Streak", "47", "days", Icons.Default.LocalFireDepartment, VigilPalette.Warning)
-        QuickStatCard("Blocked", "234", "total", Icons.Default.Security, VigilPalette.IcyCyan)
+        QuickStatCard("This Week", "6", "check-ins", CheckCircle, VigilPalette.Success)
+        QuickStatCard("Streak", "47", "days", LocalFireDepartment, VigilPalette.Warning)
+        QuickStatCard("Blocked", "234", "total", Security, VigilPalette.IcyCyan)
     }
 }
 
@@ -276,17 +277,17 @@ fun QuickActionsSection() {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 QuickActionButton(
-                    icon = Icons.Default.Science,
+                    icon = Science,
                     label = "Test Blocking",
                     color = VigilPalette.IcyCyan
                 )
                 QuickActionButton(
-                    icon = Icons.Default.EditNote,
+                    icon = EditNote,
                     label = "Daily Check-in",
                     color = VigilPalette.Success
                 )
                 QuickActionButton(
-                    icon = Icons.Default.TrendingUp,
+                    icon = TrendingUp,
                     label = "View Progress",
                     color = VigilPalette.ElectricBlue
                 )
@@ -352,19 +353,19 @@ fun BlockingStatusCard() {
             BlockingStatusRow(
                 title = "DNS Filtering",
                 subtitle = "Active",
-                icon = Icons.Default.Dns,
+                icon = Dns,
                 status = BlockingStatus.Active
             )
             BlockingStatusRow(
                 title = "Root Integration",
                 subtitle = "Available",
-                icon = Icons.Default.AdminPanelSettings,
+                icon = AdminPanelSettings,
                 status = BlockingStatus.Active
             )
             BlockingStatusRow(
                 title = "Custom Domains",
                 subtitle = "12 blocked",
-                icon = Icons.Default.ListAlt,
+                icon = ListAlt,
                 status = BlockingStatus.Active
             )
         }
@@ -423,7 +424,7 @@ fun BlockingStatusRow(
             }
         }
         Icon(
-            imageVector = Icons.Default.ChevronRight,
+            imageVector = ChevronRight,
             contentDescription = "",
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp)

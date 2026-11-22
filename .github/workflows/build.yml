@@ -22,26 +22,28 @@ jobs:
           distribution: 'temurin'
           java-version: 21
 
-      - name: Install Gradle
+      - name: Find Android SDK
         run: |
-          curl -s "https://get.sdkman.io" | bash
-          source "$HOME/.sdkman/bin/sdkman-init.sh"
-          sdk install gradle 8.7
-          sdk default gradle 8.7
-          gradle --version
+          echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
+          echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-unset}"
+          ls -la /usr/lib/android-sdk/ 2>&1 | head -5 || echo "/usr/lib/android-sdk not found"
+          ls -la $HOME/android-sdk/ 2>&1 | head -5 || echo "$HOME/android-sdk not found"
 
       - name: Accept Android SDK licenses
         run: |
-          mkdir -p $ANDROID_HOME/licenses
-          echo 24333f8a63b6825ea9c5514f83c2829b004d1fee > $ANDROID_HOME/licenses/android-sdk-license
+          SDK_DIR="${ANDROID_HOME:-/usr/lib/android-sdk}"
+          mkdir -p "$SDK_DIR/licenses"
+          echo 24333f8a63b6825ea9c5514f83c2829b004d1fee > "$SDK_DIR/licenses/android-sdk-license"
 
       - name: Install Android SDK components
         run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "platforms;android-35" "build-tools;34.0.0" 2>&1 || true
+          SDK_DIR="${ANDROID_HOME:-/usr/lib/android-sdk}"
+          yes | "$SDK_DIR/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_DIR" "platforms;android-35" "build-tools;34.0.0" 2>&1 || true
 
       - name: Configure local.properties
         run: |
-          echo "sdk.dir=$ANDROID_HOME" > VigilApp/local.properties
+          SDK_DIR="${ANDROID_HOME:-/usr/lib/android-sdk}"
+          echo "sdk.dir=$SDK_DIR" > VigilApp/local.properties
           cat VigilApp/local.properties
 
       - name: Build Debug APK with Gradle

@@ -22,27 +22,10 @@ jobs:
           distribution: 'temurin'
           java-version: 21
 
-      - name: Debug environment
-        run: |
-          echo "JAVA_HOME=$JAVA_HOME"
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          which java
-          java -version
-          which gradle || echo "gradle not found"
-          which ./gradlew || echo "gradlew not found in cwd"
-          ls -la VigilApp/gradlew
-          ls -la VigilApp/gradle/wrapper/
-
       - name: Accept Android SDK licenses
         run: |
           mkdir -p $ANDROID_HOME/licenses
           echo 24333f8a63b6825ea9c5514f83c2829b004d1fee > $ANDROID_HOME/licenses/android-sdk-license
-          ls $ANDROID_HOME/licenses/
-
-      - name: Install Android SDK platform
-        run: |
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-35" "build-tools;34.0.0" 2>&1 || echo "sdkmanager failed, trying legacy path"
-          $ANDROID_HOME/tools/bin/sdkmanager "platforms;android-35" "build-tools;34.0.0" 2>&1 || true
 
       - name: Build Debug APK with Gradle
         run: |

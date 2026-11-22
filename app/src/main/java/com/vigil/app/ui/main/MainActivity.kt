@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             VigilTheme {
                 Surface(
-                    modifier = fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.surface
                 ) {
                     NavHost()

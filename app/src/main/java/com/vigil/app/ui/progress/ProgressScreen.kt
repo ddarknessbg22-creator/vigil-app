@@ -5,29 +5,33 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.VerticalDivider
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.Icons.Default.*
 import com.vigil.app.ui.components.GlassRow
-import com.vigil.app.ui.components.SectionTitle
 import com.vigil.app.ui.theme.VigilPalette
+import com.vigil.app.ui.theme.VigilText
 
 @Composable
 fun ProgressScreen(
@@ -54,18 +58,18 @@ fun TopBar(
     onBack: () -> Unit,
     title: String
 ) {
-    androidx.compose.foundation.layout.Row(
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Alignment.CenterVertically
     ) {
         IconButton(onClick = onBack) {
             Icon(
-                imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
+                imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Back",
                 tint = MaterialTheme.colorScheme.onSurface
             )
         }
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = title,
             style = MaterialTheme.typography.headlineMedium,
@@ -81,18 +85,30 @@ fun HeroStatsCard() {
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(text = "Your Journey", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
-            androidx.compose.foundation.layout.Row(
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                StatColumn("Current Streak", "47", "days", VigilPalette.Warning, androidx.compose.material.icons.Icons.Default.LocalFireDepartment)
-                DividerVert()
-                StatColumn("Longest Streak", "89", "days", VigilPalette.IcyCyan, androidx.compose.material.icons.Icons.Default.EmojiEvents)
-                DividerVert()
-                StatColumn("Total Days", "342", "tracked", VigilPalette.Success, androidx.compose.material.icons.Icons.Default.CalendarToday)
-                DividerVert()
-                StatColumn("Check-ins", "298", "completed", VigilPalette.ElectricBlue, androidx.compose.material.icons.Icons.Default.CheckCircle)
+                StatColumn("Current Streak", "47", "days", VigilPalette.Warning, Icons.Default.LocalFireDepartment)
+                VerticalDivider(
+                    modifier = Modifier.fillMaxHeight().width(1.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                    thickness = 1.dp
+                )
+                StatColumn("Longest Streak", "89", "days", VigilPalette.IcyCyan, Icons.Default.EmojiEvents)
+                VerticalDivider(
+                    modifier = Modifier.fillMaxHeight().width(1.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                    thickness = 1.dp
+                )
+                StatColumn("Total Days", "342", "tracked", VigilPalette.Success, Icons.Default.CalendarToday)
+                VerticalDivider(
+                    modifier = Modifier.fillMaxHeight().width(1.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                    thickness = 1.dp
+                )
+                StatColumn("Check-ins", "298", "completed", VigilPalette.ElectricBlue, Icons.Default.CheckCircle)
             }
         }
     }
@@ -103,7 +119,7 @@ fun StatColumn(
     label: String,
     value: String,
     unit: String,
-    color: androidx.compose.ui.graphics.Color,
+    color: Color,
     icon: androidx.compose.ui.graphics.vector.ImageVector
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -113,21 +129,12 @@ fun StatColumn(
         ) {
             Icon(imageVector = icon, contentDescription = "", tint = color, modifier = Modifier.size(22.dp))
         }
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(8.dp))
-        Text(text = value, style = MaterialTheme.typography.statNumber, color = MaterialTheme.colorScheme.onSurface)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(text = value, style = VigilText.statNumber, color = MaterialTheme.colorScheme.onSurface)
         Text(text = unit, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(4.dp))
-        Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), textAlign = androidx.compose.ui.text.TextAlign.Center)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), textAlign = TextAlign.Center)
     }
-}
-
-@Composable
-fun DividerVert() {
-    androidx.compose.foundation.layout.VerticalDivider(
-        modifier = Modifier.fillMaxHeight().width(1.dp),
-        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-        thickness = 1.dp
-    )
 }
 
 @Composable
@@ -136,7 +143,8 @@ fun ProgressCalendarCard() {
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            SectionTitle("Activity Calendar", "Your daily check-ins and progress", androidx.compose.material.icons.Icons.Default.CalendarMonth, VigilPalette.IcyCyan)
+            Text(text = "Activity Calendar", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+            Spacer(modifier = Modifier.height(16.dp))
             Text(text = "Calendar grid renders here", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
@@ -148,11 +156,12 @@ fun MilestonesCard() {
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            SectionTitle("Milestones", "Achievements unlocked", androidx.compose.material.icons.Icons.Default.EmojiEvents, VigilPalette.Warning)
-            MilestoneItem("First Week", "Completed 7 days of tracking", androidx.compose.material.icons.Icons.Default.Star, VigilPalette.Warning, true, "Jan 15, 2024")
-            MilestoneItem("Month Warrior", "30 consecutive days protected", androidx.compose.material.icons.Icons.Default.Shield, VigilPalette.IcyCyan, true, "Feb 14, 2024")
-            MilestoneItem("Quarter Master", "90 days of discipline", androidx.compose.material.icons.Icons.Default.EmojiEvents, VigilPalette.ElectricBlue, true, "May 15, 2024")
-            MilestoneItem("Half Year Hero", "180 days on the path", androidx.compose.material.icons.Icons.Default.MilitaryTech, VigilPalette.Success, false, "Day 47/180")
+            Text(text = "Milestones", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+            Spacer(modifier = Modifier.height(16.dp))
+            MilestoneItem("First Week", "Completed 7 days of tracking", Icons.Default.Star, VigilPalette.Warning, true, "Jan 15, 2024")
+            MilestoneItem("Month Warrior", "30 consecutive days protected", Icons.Default.Shield, VigilPalette.IcyCyan, true, "Feb 14, 2024")
+            MilestoneItem("Quarter Master", "90 days of discipline", Icons.Default.EmojiEvents, VigilPalette.ElectricBlue, true, "May 15, 2024")
+            MilestoneItem("Half Year Hero", "180 days on the path", Icons.Default.MilitaryTech, VigilPalette.Success, false, "Day 47/180")
         }
     }
 }
@@ -162,14 +171,14 @@ fun MilestoneItem(
     title: String,
     description: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    color: androidx.compose.ui.graphics.Color,
+    color: Color,
     achieved: Boolean,
     date: String
 ) {
     GlassRow(
         modifier = Modifier.fillMaxWidth()
     ) {
-        androidx.compose.foundation.layout.Row(
+        Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -185,7 +194,7 @@ fun MilestoneItem(
             }
             Column(horizontalAlignment = Alignment.End) {
                 if (achieved) {
-                    Icon(imageVector = androidx.compose.material.icons.Icons.Default.CheckCircle, contentDescription = "Achieved", tint = color, modifier = Modifier.size(22.dp))
+                    Icon(imageVector = Icons.Default.CheckCircle, contentDescription = "Achieved", tint = color, modifier = Modifier.size(22.dp))
                     Text(text = date, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else {
                     Text(text = date, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
@@ -201,8 +210,9 @@ fun WeeklySummaryCard() {
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            SectionTitle("Weekly Summary", "Last 7 days", androidx.compose.material.icons.Icons.Default.TrendingUp, VigilPalette.Success)
-            androidx.compose.foundation.layout.Row(
+            Text(text = "Weekly Summary", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
@@ -216,7 +226,7 @@ fun WeeklySummaryCard() {
 }
 
 @Composable
-fun WeeklyStat(label: String, value: String, color: androidx.compose.ui.graphics.Color) {
+fun WeeklyStat(label: String, value: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = value, style = MaterialTheme.typography.headlineMedium, color = color)
         Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -229,8 +239,9 @@ fun MonthlySummaryCard() {
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            SectionTitle("Monthly Summary", "Last 30 days", androidx.compose.material.icons.Icons.Default.Assessment, VigilPalette.ElectricBlue)
-            androidx.compose.foundation.layout.Row(
+            Text(text = "Monthly Summary", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
@@ -244,7 +255,7 @@ fun MonthlySummaryCard() {
 }
 
 @Composable
-fun MonthlyStat(label: String, value: String, color: androidx.compose.ui.graphics.Color) {
+fun MonthlyStat(label: String, value: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = value, style = MaterialTheme.typography.headlineMedium, color = color)
         Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -257,7 +268,8 @@ fun GoalsCard() {
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            SectionTitle("Active Goals", "Your current commitments", androidx.compose.material.icons.Icons.Default.Flag, VigilPalette.ElectricBlue)
+            Text(text = "Active Goals", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+            Spacer(modifier = Modifier.height(16.dp))
             GoalItem("30 Days Clean", "No adult content for 30 days", 0.65f, 10, VigilPalette.IcyCyan)
             GoalItem("Daily Check-in Streak", "Check in every day for 14 days", 0.85f, 2, VigilPalette.Success)
             GoalItem("Reduce Screen Time", "Limit social media to 30 min/day", 0.40f, 20, VigilPalette.Warning)
@@ -271,29 +283,29 @@ fun GoalItem(
     description: String,
     progress: Float,
     daysRemaining: Int,
-    color: androidx.compose.ui.graphics.Color
+    color: Color
 ) {
     GlassRow(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            androidx.compose.foundation.layout.Row(
+            Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = title, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                 Text(text = "$daysRemaining days left", style = MaterialTheme.typography.labelMedium, color = color)
             }
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             Text(text = description, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(12.dp))
-            androidx.compose.material3.LinearProgressIndicator(
+            Spacer(modifier = Modifier.height(12.dp))
+            LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth(),
                 progress = progress,
                 color = color,
                 strokeWidth = 8.dp
             )
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(text = "${(progress * 100).toInt()}% complete", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
@@ -305,19 +317,19 @@ fun DailyCheckInCard() {
         modifier = Modifier.fillMaxWidth(),
         onClick = { }
     ) {
-        androidx.compose.foundation.layout.Row(
+        Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(imageVector = androidx.compose.material.icons.Icons.Default.EditNote, contentDescription = "", tint = VigilPalette.Success)
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(12.dp))
+            Icon(imageVector = Icons.Default.EditNote, contentDescription = "", tint = VigilPalette.Success)
+            Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(text = "Daily Check-in", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                 Text(text = "Reflect on your day", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.weight(1f))
-            Icon(imageVector = androidx.compose.material.icons.Icons.Default.ChevronRight, contentDescription = "", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(modifier = Modifier.weight(1f))
+            Icon(imageVector = Icons.Default.ChevronRight, contentDescription = "", tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

@@ -26,11 +26,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material.icons.Icons
 import com.vigil.app.ui.components.GlassRow
 import com.vigil.app.ui.components.GlassSurface
 import com.vigil.app.ui.components.SectionTitle
 import com.vigil.app.ui.theme.VigilPalette
+import com.vigil.app.ui.theme.VigilText
 
 @Composable
 fun HomeScreen(
@@ -71,7 +72,7 @@ fun ProtectionStatusCard(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = if (isProtected) androidx.compose.material.icons.Icons.Default.Shield else androidx.compose.material.icons.Icons.Default.ShieldOff,
+                    imageVector = if (isProtected) Icons.Default.Shield else Icons.Default.ShieldOff,
                     contentDescription = if (isProtected) "Protection Active" else "Protection Inactive",
                     tint = if (isProtected) VigilPalette.Success else VigilPalette.Danger,
                     modifier = Modifier.size(48.dp)
@@ -94,13 +95,13 @@ fun ProtectionStatusCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                StatItem(value = daysProtected, label = "Days Protected", icon = androidx.compose.material.icons.Icons.Default.CalendarToday)
+                StatItem(value = daysProtected, label = "Days Protected", icon = Icons.Default.CalendarToday)
                 VerticalDivider(
                     modifier = Modifier.fillMaxHeight().width(1.dp),
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                     thickness = 1.dp
                 )
-                StatItem(value = blockedToday, label = "Blocked Today", icon = androidx.compose.material.icons.Icons.Default.Block)
+                StatItem(value = blockedToday, label = "Blocked Today", icon = Icons.Default.Block)
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(
@@ -207,9 +208,9 @@ fun QuickStatsRow() {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        QuickStatCard("This Week", "6", "check-ins", androidx.compose.material.icons.Icons.Default.CheckCircle, VigilPalette.Success)
-        QuickStatCard("Streak", "47", "days", androidx.compose.material.icons.Icons.Default.LocalFireDepartment, VigilPalette.Warning)
-        QuickStatCard("Blocked", "234", "total", androidx.compose.material.icons.Icons.Default.Security, VigilPalette.IcyCyan)
+        QuickStatCard("This Week", "6", "check-ins", Icons.Default.CheckCircle, VigilPalette.Success)
+        QuickStatCard("Streak", "47", "days", Icons.Default.LocalFireDepartment, VigilPalette.Warning)
+        QuickStatCard("Blocked", "234", "total", Icons.Default.Security, VigilPalette.IcyCyan)
     }
 }
 
@@ -238,7 +239,7 @@ fun QuickStatCard(
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = value,
-                style = MaterialTheme.typography.statNumber,
+                style = VigilText.statNumber,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
@@ -274,17 +275,17 @@ fun QuickActionsSection() {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 QuickActionButton(
-                    icon = androidx.compose.material.icons.Icons.Default.Science,
+                    icon = Icons.Default.Science,
                     label = "Test Blocking",
                     color = VigilPalette.IcyCyan
                 )
                 QuickActionButton(
-                    icon = androidx.compose.material.icons.Icons.Default.EditNote,
+                    icon = Icons.Default.EditNote,
                     label = "Daily Check-in",
                     color = VigilPalette.Success
                 )
                 QuickActionButton(
-                    icon = androidx.compose.material.icons.Icons.Default.TrendingUp,
+                    icon = Icons.Default.TrendingUp,
                     label = "View Progress",
                     color = VigilPalette.ElectricBlue
                 )
@@ -350,19 +351,19 @@ fun BlockingStatusCard() {
             BlockingStatusRow(
                 title = "DNS Filtering",
                 subtitle = "Active",
-                icon = androidx.compose.material.icons.Icons.Default.Dns,
+                icon = Icons.Default.Dns,
                 status = BlockingStatus.Active
             )
             BlockingStatusRow(
                 title = "Root Integration",
                 subtitle = "Available",
-                icon = androidx.compose.material.icons.Icons.Default.AdminPanelSettings,
+                icon = Icons.Default.AdminPanelSettings,
                 status = BlockingStatus.Active
             )
             BlockingStatusRow(
                 title = "Custom Domains",
                 subtitle = "12 blocked",
-                icon = androidx.compose.material.icons.Icons.Default.ListAlt,
+                icon = Icons.Default.ListAlt,
                 status = BlockingStatus.Active
             )
         }
@@ -421,7 +422,7 @@ fun BlockingStatusRow(
             }
         }
         Icon(
-            imageVector = androidx.compose.material.icons.Icons.Default.ChevronRight,
+            imageVector = Icons.Default.ChevronRight,
             contentDescription = "",
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp)

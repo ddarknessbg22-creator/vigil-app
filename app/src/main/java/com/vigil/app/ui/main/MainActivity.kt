@@ -3,6 +3,7 @@ package com.vigil.app.ui.main
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -15,7 +16,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             VigilTheme {
                 Surface(
-                    modifier = androidx.compose.foundation.layout.fillMaxSize(),
+                    modifier = fillMaxSize(),
                     color = MaterialTheme.colorScheme.surface
                 ) {
                     NavHost()

@@ -1,12 +1,8 @@
 package com.vigil.app.ui.navigation
 
-import androidx.compose.material3.NavHost
-import androidx.compose.material3.composable
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.vigil.app.ui.home.HomeScreen
 import com.vigil.app.ui.protection.ProtectionScreen

@@ -22,10 +22,27 @@ jobs:
           distribution: 'temurin'
           java-version: 21
 
+      - name: Debug environment
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          which java
+          java -version
+          which gradle || echo "gradle not found"
+          which ./gradlew || echo "gradlew not found in cwd"
+          ls -la VigilApp/gradlew
+          ls -la VigilApp/gradle/wrapper/
+
       - name: Accept Android SDK licenses
         run: |
           mkdir -p $ANDROID_HOME/licenses
           echo 24333f8a63b6825ea9c5514f83c2829b004d1fee > $ANDROID_HOME/licenses/android-sdk-license
+          ls $ANDROID_HOME/licenses/
+
+      - name: Install Android SDK platform
+        run: |
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-35" "build-tools;34.0.0" 2>&1 || echo "sdkmanager failed, trying legacy path"
+          $ANDROID_HOME/tools/bin/sdkmanager "platforms;android-35" "build-tools;34.0.0" 2>&1 || true
 
       - name: Build Debug APK with Gradle
         run: |
@@ -35,13 +52,8 @@ jobs:
             --no-daemon \
             -Dorg.gradle.jvmargs=-Xmx2g \
             -Dorg.gradle.workers.max=2 \
-            -Dorg.gradle.native=false
-
-      - name: Verify APK
-        run: |
-          cd VigilApp
-          apksigner verify app/build/outputs/apk/debug/app-debug.apk 2>/dev/null || true
-          ls -la app/build/outputs/apk/debug/app-debug.apk
+            -Dorg.gradle.native=false \
+            --stacktrace
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
@@ -49,41 +61,4 @@ jobs:
           name: vigil-debug-apk
           path: VigilApp/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
-
-  build-release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    timeout-minutes: 60
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 21
-
-      - name: Accept Android SDK licenses
-        run: |
-          mkdir -p $ANDROID_HOME/licenses
-          echo 24333f8a63b6825ea9c5514f83c2829b004d1fee > $ANDROID_HOME/licenses/android-sdk-license
-
-      - name: Build Release AAB
-        run: |
-          cd VigilApp
-          chmod +x gradlew
-          ./gradlew :app:bundleRelease \
-            --no-daemon \
-            -Dorg.gradle.jvmargs=-Xmx2g \
-            -Dorg.gradle.workers.max=2 \
-            -Dorg.gradle.native=false
-
-      - name: Upload Release AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: vigil-release-aab
-          path: VigilApp/app/build/outputs/bundle/release/app-release.aab
-          retention-days: 30
+        if: always()

@@ -22,21 +22,27 @@ jobs:
           distribution: 'temurin'
           java-version: 21
 
-      - name: Check tools
+      - name: Install Gradle
         run: |
-          echo "JAVA_HOME=$JAVA_HOME"
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          java -version 2>&1 || true
-          gradle --version 2>&1 | head -5 || echo "gradle not available"
-          ls -la $ANDROID_HOME/ 2>&1 | head -10 || true
+          curl -s "https://get.sdkman.io" | bash
+          source "$HOME/.sdkman/bin/sdkman-init.sh"
+          sdkman_default_gradle_version=8.7
+          sdk install gradle $sdkman_default_gradle_version
+          sdk default gradle $sdkman_default_gradle_version
+          gradle --version
 
       - name: Accept Android SDK licenses
         run: |
           mkdir -p $ANDROID_HOME/licenses
           echo 24333f8a63b6825ea9c5514f83c2829b004d1fee > $ANDROID_HOME/licenses/android-sdk-license
 
+      - name: Install Android SDK components
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "platforms;android-35" "build-tools;34.0.0" 2>&1 || true
+
       - name: Build Debug APK with Gradle
         run: |
+          source "$HOME/.sdkman/bin/sdkman-init.sh"
           cd VigilApp
           gradle :app:assembleDebug \
             --no-daemon \

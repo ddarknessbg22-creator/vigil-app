@@ -27,6 +27,7 @@ import androidx.compose.ui.text.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.Icons.Default.*
 import com.vigil.app.ui.components.GlassRow
 import com.vigil.app.ui.components.GlassSurface
 import com.vigil.app.ui.components.SectionTitle

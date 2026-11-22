@@ -6,13 +6,16 @@
             <corners android:radius="24dp"/>
         </shape>
     </item>
-    <item android:top="8dp" android:left="8dp" android:right="8dp" android:bottom="8dp">
+    <item android:top="14dp" android:left="14dp" android:right="14dp" android:bottom="14dp">
         <shape android:shape="rectangle">
             <solid android:color="#00E5FF"/>
-            <corners android:radius="16dp"/>
+            <corners android:radius="12dp"/>
         </shape>
     </item>
-    <item android:gravity="center">
-        <bitmap android:src="@drawable/vigil_mark" android:tint="#050607"/>
+    <item android:top="26dp" android:left="26dp" android:right="26dp" android:bottom="26dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#050607"/>
+            <corners android:radius="6dp"/>
+        </shape>
     </item>
 </layer-list>

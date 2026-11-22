@@ -57,6 +57,7 @@ fun GlassSurface(
 
     val tintTop = if (strong) tokens.surfaceTintStrong else tokens.surfaceTint
     val tintBottom = tintTop.copy(alpha = tintTop.alpha * 0.45f)
+    val surfaceShape = shape
 
     Box(
         modifier = modifier
@@ -64,7 +65,7 @@ fun GlassSurface(
                 scaleX = scale
                 scaleY = scale
                 shadowElevation = 18f
-                shape = this@GlassSurface.shape
+                this.shape = surfaceShape
                 clip = false
             }
             .clip(shape)

@@ -30,19 +30,6 @@ abstract class VigilDatabase : RoomDatabase() {
     abstract fun protectionEventDao(): ProtectionEventDao
     abstract fun settingsDao(): SettingsDao
 
-    /** Wipes every table (used by emergency data deletion). */
-    suspend fun clearAllTables() {
-        withTransaction {
-            checkInDao().deleteAll()
-            goalDao().deleteAll()
-            milestoneDao().deleteAll()
-            blockedDomainDao().deleteAll()
-            restrictedAppDao().deleteAll()
-            protectionEventDao().deleteAll()
-            settingsDao().deleteAll()
-        }
-    }
-
     companion object {
         @Volatile
         private var INSTANCE: VigilDatabase? = null

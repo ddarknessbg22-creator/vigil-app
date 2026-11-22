@@ -12,6 +12,7 @@ import android.os.ParcelFileDescriptor
 import android.util.Log
 import com.vigil.app.AppServices
 import com.vigil.app.R
+import com.vigil.app.blocking.BlocklistManager
 import com.vigil.app.ui.main.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,7 +48,7 @@ class VigilVpnService : VpnService() {
     private var worker: kotlinx.coroutines.Job? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val relayPool = Executors.newFixedThreadPool(4)
-    private val blocklist: BlocklistManager
+    private lateinit var blocklist: BlocklistManager
 
     override fun onCreate() {
         super.onCreate()
@@ -193,9 +194,11 @@ class VigilVpnService : VpnService() {
         runCatching { tun?.close() }
         tun = null
         relayPool.shutdownNow()
-        try {
-            AppServices.app(this@VigilVpnService).repository.logEvent("protection_disabled", "DNS filter stopped")
-        } catch (_: Exception) {
+        scope.launch {
+            try {
+                AppServices.app(this@VigilVpnService).repository.logEvent("protection_disabled", "DNS filter stopped")
+            } catch (_: Exception) {
+            }
         }
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()

@@ -184,7 +184,15 @@ class VigilRepository(
     }
 
     suspend fun wipeEverything() {
-        db.clearAllTables()
+        db.withTransaction {
+            checkIns.deleteAll()
+            goals.deleteAll()
+            milestones.deleteAll()
+            domains.deleteAll()
+            apps.deleteAll()
+            events.deleteAll()
+            db.settingsDao().deleteAll()
+        }
         prefs.clear()
     }
 

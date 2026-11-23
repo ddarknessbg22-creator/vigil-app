@@ -2,12 +2,21 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="oval">
-            <solid android:color="#050607"/>
+            <gradient
+                android:startColor="#2B7CFF"
+                android:endColor="#0A4FD8"
+                android:angle="315" />
         </shape>
     </item>
-    <item android:top="8dp" android:left="8dp" android:right="8dp" android:bottom="8dp">
-        <shape android:shape="oval">
-            <solid android:color="#00E5FF"/>
-        </shape>
+    <item android:gravity="center" android:width="48dp" android:height="48dp">
+        <vector xmlns:a="http://schemas.android.com/apk/res/android"
+            a:width="48dp" a:height="48dp" a:viewportWidth="108" a:viewportHeight="108">
+            <path
+                a:fillColor="#FFFFFF"
+                a:pathData="M53.5,82 C41.4,82 34,72.5 34,62.5 C34,53.4 40.5,46.5 45.2,38.8 C47.8,45.2 50.6,48.2 53.4,51 C52.7,44.4 55,38.6 61,33 C60.2,44.1 63.4,49 68.2,54.3 C73.2,59.8 76,66.2 76,72 C76,80.5 67.5,82 53.5,82 Z" />
+            <path
+                a:fillColor="#FFD48A"
+                a:pathData="M54,81.5 C48.4,81.5 44.6,77.4 44.6,72.8 C44.6,68.4 48,65 50.6,61.4 C51.4,65.2 54.4,67.2 57.6,68.4 C60.2,69.4 62,71.8 62,74.8 C62,79 58.6,81.5 54,81.5 Z" />
+        </vector>
     </item>
 </layer-list>

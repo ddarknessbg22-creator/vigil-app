@@ -8,27 +8,32 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-/** VIGIL palette: deep black, graphite, charcoal, icy cyan, electric blue. */
+/**
+ * MIUI / HyperOS-inspired palette.
+ *
+ * Page and card are deliberately close in value: the separation comes from a
+ * small step in lightness and a large corner radius, not from outlines or
+ * shadows — the way Xiaomi's settings and notes surfaces are built.
+ */
 object VigilPalette {
-    val IcyCyan = Color(0xFFAADECB)
-    val ElectricBlue = Color(0xFF0091EA)
-    val CoolWhite = Color(0xFFE8F4FD)
+    val IcyCyan = Color(0xFF9CC8FF)
+    val ElectricBlue = Color(0xFF3B82F6)
+    val CoolWhite = Color(0xFFF2F4F8)
 
-    val DeepBlack = Color(0xFF050607)
-    val Graphite = Color(0xFF0E1113)
-    val Charcoal = Color(0xFF161A1D)
-    val Elevated = Color(0xFF1F2428)
+    val DeepBlack = Color(0xFF0B0B0E)
+    val Graphite = Color(0xFF0F0F12)
+    val Charcoal = Color(0xFF1C1C21)
+    val Elevated = Color(0xFF24242A)
 
-    val Success = Color(0xFF00E676)
-    val Warning = Color(0xFFFFC400)
-    val Danger = Color(0xFFFF4D4D)
+    val Success = Color(0xFF4CD6A0)
+    val Warning = Color(0xFFFFB020)
+    val Danger = Color(0xFFFF6B6B)
 
-    val TextPrimary = Color(0xFFF5FAFF)
-    val TextSecondary = Color(0xFFA9B6C2)
-    val TextTertiary = Color(0xFF6E7A85)
+    val TextPrimary = Color(0xFFF5F6F8)
+    val TextSecondary = Color(0xFFA0A2AC)
+    val TextTertiary = Color(0xFF6E707A)
 }
 
-/** Glass tokens, theme-aware. */
 data class GlassTokens(
     val surfaceTint: Color,
     val surfaceTintStrong: Color,
@@ -55,46 +60,50 @@ val LocalGlassTokens = staticCompositionLocalOf {
 val LocalGlassEnabled = staticCompositionLocalOf { true }
 
 val DarkScheme = darkColorScheme(
-    primary = Color(0xFF5B9BFF),
-    onPrimary = Color(0xFF00172E),
-    primaryContainer = Color(0xFF16345F),
-    onPrimaryContainer = Color(0xFFD7E6FF),
+    primary = Color(0xFF4C8DFF),
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFF1B3A6B),
+    onPrimaryContainer = Color(0xFFD9E7FF),
     secondary = Color(0xFFFF9A4D),
     onSecondary = Color(0xFF2B1300),
     tertiary = Color(0xFF4CD6A0),
     onTertiary = Color(0xFF00241A),
-    background = Color(0xFF000000),
-    onBackground = Color(0xFFF2F3F5),
-    surface = Color(0xFF000000),
-    onSurface = Color(0xFFF2F3F5),
-    surfaceVariant = Color(0xFF1C1C1F),
-    onSurfaceVariant = Color(0xFF9A9CA3),
-    surfaceContainer = Color(0xFF1A1A1D),
-    surfaceContainerHigh = Color(0xFF242427),
-    surfaceContainerHighest = Color(0xFF2E2E32),
-    outline = Color(0xFF3A3A3F),
-    outlineVariant = Color(0xFF2A2A2E),
-    error = Color(0xFFFF6B6B),
+    background = VigilPalette.Graphite,
+    onBackground = VigilPalette.TextPrimary,
+    surface = VigilPalette.Graphite,
+    onSurface = VigilPalette.TextPrimary,
+    surfaceVariant = VigilPalette.Charcoal,
+    onSurfaceVariant = VigilPalette.TextSecondary,
+    surfaceContainerLowest = VigilPalette.DeepBlack,
+    surfaceContainerLow = VigilPalette.Graphite,
+    surfaceContainer = VigilPalette.Charcoal,
+    surfaceContainerHigh = VigilPalette.Elevated,
+    surfaceContainerHighest = Color(0xFF2E2E35),
+    outline = Color(0xFF3A3A42),
+    outlineVariant = Color(0xFF2A2A31),
+    error = VigilPalette.Danger,
     onError = Color(0xFF2B0000)
 )
 
 val LightScheme = lightColorScheme(
-    primary = Color(0xFF2F6FED),
+    primary = Color(0xFF0A59F7),
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFDCE8FF),
+    primaryContainer = Color(0xFFDBE7FF),
     onPrimaryContainer = Color(0xFF001B44),
-    secondary = Color(0xFFF26A1B),
+    secondary = Color(0xFFE86A18),
     onSecondary = Color.White,
-    tertiary = Color(0xFF138A62),
-    background = Color(0xFFF3F4F7),
+    tertiary = Color(0xFF0F8A62),
+    background = Color(0xFFF2F3F7),
     onBackground = Color(0xFF14151A),
-    surface = Color(0xFFF3F4F7),
+    surface = Color(0xFFF2F3F7),
     onSurface = Color(0xFF14151A),
     surfaceVariant = Color(0xFFE7E9EE),
-    onSurfaceVariant = Color(0xFF6B6F78),
-    surfaceContainer = Color(0xFFFFFFFF),
-    surfaceContainerHigh = Color(0xFFFFFFFF),
-    surfaceContainerHighest = Color(0xFFECEEF2),
+    onSurfaceVariant = Color(0xFF666973),
+    surfaceContainerLowest = Color.White,
+    surfaceContainerLow = Color(0xFFFAFAFC),
+    surfaceContainer = Color.White,
+    surfaceContainerHigh = Color(0xFFF7F8FA),
+    surfaceContainerHighest = Color(0xFFEFF0F4),
     outline = Color(0xFFC8CBD2),
     outlineVariant = Color(0xFFE2E4E9),
     error = Color(0xFFD93636),

@@ -1,12 +1,14 @@
 package com.vigil.app.ui.protection
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -15,435 +17,353 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
-import androidx.compose.material.icons.Icons.Default.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.vigil.app.blocking.root.RootManager
+import com.vigil.app.ui.VigilViewModel
 import com.vigil.app.ui.components.GlassRow
 import com.vigil.app.ui.components.SectionTitle
+import com.vigil.app.ui.theme.VigilIcons
 import com.vigil.app.ui.theme.VigilPalette
 
 @Composable
-fun ProtectionScreen(
-    onNavigateBack: () -> Unit
-) {
+fun ProtectionScreen(vm: VigilViewModel) {
+    val protection by vm.protectionEnabled.collectAsStateWithLifecycle()
+    val dns by vm.dnsEnabled.collectAsStateWithLifecycle()
+    val rootEnabled by vm.rootEnabled.collectAsStateWithLifecycle()
+    val rootStatus by vm.rootStatus.collectAsStateWithLifecycle()
+    val autoUpdate by vm.autoUpdate.collectAsStateWithLifecycle()
+    val logBlocked by vm.logBlocked.collectAsStateWithLifecycle()
+    val friction by vm.friction.collectAsStateWithLifecycle()
+    val domains by vm.domains.collectAsStateWithLifecycle()
+    val busy by vm.busy.collectAsStateWithLifecycle()
+    val vpnRunning by vm.vpnRunning.collectAsStateWithLifecycle()
+
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp, 20.dp, 16.dp, 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp, 8.dp, 0.dp, 96.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+        item { SectionTitle("Master switch", "Everything below depends on this") }
+
         item {
-            TopBar(onBack = onNavigateBack, title = "Protection")
-        }
-
-        item { DnsSection() }
-        item { BlocklistSection() }
-        item { CustomDomainsSection() }
-        item { RootSection() }
-        item { AppRestrictionsSection() }
-        item { BlockingTestsSection() }
-        item { RecoverySection() }
-    }
-}
-
-@Composable
-fun TopBar(
-    onBack: () -> Unit,
-    title: String
-) {
-    androidx.compose.foundation.layout.Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onBack) {
-            Icon(
-                imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
-                contentDescription = "Back",
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
-
-@Composable
-fun DnsSection() {
-    GlassRow(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            SectionTitle("DNS Filtering", "Core protection layer", androidx.compose.material.icons.Icons.Default.Dns, VigilPalette.IcyCyan)
-            ProtectionToggle("Enable DNS Filtering", "Blocks known adult domains at the network level", true, { })
-            ProtectionToggle("Auto-update Blocklists", "Download latest blocklists automatically", true, { })
-            ProtectionToggle("Log Blocked Requests", "Record blocked domains for review", false, { })
-        }
-    }
-}
-
-@Composable
-fun BlocklistSection() {
-    GlassRow(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            SectionTitle("Blocklist Management", "Configure which lists to use", androidx.compose.material.icons.Icons.Default.ListAlt, VigilPalette.ElectricBlue)
-            BlocklistItem("OISD Full", "Comprehensive adult content blocklist (~2M domains)", true, "2 hours ago", { })
-            BlocklistItem("OISD Basic", "Essential adult domains only (~500K domains)", false, "2 hours ago", { })
-            BlocklistItem("Custom Blocklist", "Your personal domain list", true, "Just now", { })
-        }
-    }
-}
-
-@Composable
-fun CustomDomainsSection() {
-    GlassRow(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            SectionTitle("Custom Domains", "Add your own blocked/allowed domains", androidx.compose.material.icons.Icons.Default.Edit, VigilPalette.Success)
-            CustomDomainRow("example-adult.com", DomainType.Blocked, { })
-            CustomDomainRow("tracking-site.net", DomainType.Blocked, { })
-            CustomDomainRow("allowed-site.org", DomainType.Allowed, { })
-            AddDomainButton { }
-        }
-    }
-}
-
-@Composable
-fun RootSection() {
-    GlassRow(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            SectionTitle("Root Integration", "Enhanced blocking capabilities", androidx.compose.material.icons.Icons.Default.AdminPanelSettings, VigilPalette.Warning)
-            RootStatusRow("Root Access", RootStatus.Available, "Magisk/APatch detected")
-            ProtectionToggle("Enable Root-based Blocking", "Use hosts file and iptables for system-wide blocking", true, { })
-            ProtectionToggle("Boot Persistence", "Re-apply rules on device restart", true, { })
-            ProtectionToggle("DNS-over-HTTPS Bypass", "Block DoH endpoints to prevent bypass", false, { })
-        }
-    }
-}
-
-@Composable
-fun AppRestrictionsSection() {
-    GlassRow(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            SectionTitle("App Restrictions", "Limit access to distracting apps", androidx.compose.material.icons.Icons.Default.Apps, VigilPalette.ElectricBlue)
-            AppRestrictionRow("Instagram", "com.instagram.android", true, { })
-            AppRestrictionRow("TikTok", "com.zhiliaoapp.musically", true, { })
-            AppRestrictionRow("Reddit", "com.reddit.frontpage", false, { })
-            AddAppButton { }
-        }
-    }
-}
-
-@Composable
-fun BlockingTestsSection() {
-    GlassRow(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            SectionTitle("Blocking Tests", "Verify protection is working", androidx.compose.material.icons.Icons.Default.Science, VigilPalette.Success)
-            TestButton("Test Adult Domain Block", "Attempts to resolve known adult domain", { })
-            TestButton("Test Custom Domain Block", "Verifies your custom blocked domains", { })
-            TestButton("Test Allowlist", "Confirms allowed domains resolve correctly", { })
-            TestButton("Full Blocking Audit", "Comprehensive protection verification", { })
-        }
-    }
-}
-
-@Composable
-fun RecoverySection() {
-    GlassRow(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            SectionTitle("Emergency Recovery", "Always accessible safety mechanisms", androidx.compose.material.icons.Icons.Default.Emergency, VigilPalette.Danger)
-            RecoveryButton("Emergency Disable Protection", "Immediately stop all blocking (requires confirmation)", VigilPalette.Danger, { })
-            RecoveryButton("Export Configuration", "Backup your settings and blocklists", VigilPalette.ElectricBlue, { })
-            RecoveryButton("Reset to Defaults", "Clear all custom settings, keep blocklists", VigilPalette.Warning, { })
-        }
-    }
-}
-
-@Composable
-fun ProtectionToggle(
-    label: String,
-    description: String,
-    isEnabled: Boolean,
-    onToggle: (Boolean) -> Unit
-) {
-    androidx.compose.foundation.layout.Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column {
-            Text(text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-            Text(text = description, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Switch(
-            checked = isEnabled,
-            onCheckedChange = onToggle,
-            colors = androidx.compose.material3.SwitchDefaults.colors(
-                checkedThumbColor = VigilPalette.IcyCyan,
-                checkedTrackColor = VigilPalette.IcyCyan.copy(alpha = 0.3f)
-            )
-        )
-    }
-}
-
-@Composable
-fun BlocklistItem(
-    name: String,
-    description: String,
-    isEnabled: Boolean,
-    lastUpdated: String,
-    onToggle: (Boolean) -> Unit
-) {
-    androidx.compose.foundation.layout.Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            androidx.compose.foundation.layout.Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(text = name, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                if (lastUpdated != "Never") {
-                    Text(text = "Updated $lastUpdated", style = MaterialTheme.typography.labelSmall, color = VigilPalette.Success)
-                } else {
-                    Text(text = "Not installed", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            GlassRow {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        if (protection) VigilIcons.shield else VigilIcons.shieldOff,
+                        null,
+                        tint = if (protection) VigilPalette.Success else VigilPalette.Danger
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = if (protection) "Protection on" else "Protection off",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        Text(
+                            text = if (vpnRunning) "VPN tunnel is up" else "No tunnel is running",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(checked = protection, onCheckedChange = vm::setProtection)
                 }
             }
-            Text(text = description, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(
-            checked = isEnabled,
-            onCheckedChange = onToggle,
-            colors = androidx.compose.material3.SwitchDefaults.colors(
-                checkedThumbColor = VigilPalette.IcyCyan,
-                checkedTrackColor = VigilPalette.IcyCyan.copy(alpha = 0.3f)
-            )
-        )
+
+        item { SectionTitle("Filtering") }
+
+        item {
+            GlassRow {
+                Column(Modifier.fillMaxWidth()) {
+                    ToggleRow("DNS filtering", "Routes DNS through VIGIL and answers blocked names itself", dns) {
+                        vm.setFlag(com.vigil.app.data.datastore.PrefKeys.DNS_ENABLED, it)
+                    }
+                    ToggleRow("Auto blocklist updates", "Refresh the adult-domain list in the background", autoUpdate) {
+                        vm.setFlag(com.vigil.app.data.datastore.PrefKeys.AUTO_UPDATE, it)
+                    }
+                    ToggleRow("Log blocked requests", "Store blocked hostnames on this device only", logBlocked) {
+                        vm.setFlag(com.vigil.app.data.datastore.PrefKeys.LOG_BLOCKED, it)
+                    }
+                }
+            }
+        }
+
+        item {
+            GlassRow(onClick = { if (!busy) vm.updateBlocklist() }) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(VigilIcons.download, null, tint = VigilPalette.IcyCyan)
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Update blocklist now", style = MaterialTheme.typography.titleSmall)
+                        Text(
+                            text = if (busy) "Working…" else "${domains.size} domains stored",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+
+        item { SectionTitle("Root integration", "Optional, uses the hosts file") }
+
+        item {
+            GlassRow {
+                Column(Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            when (rootStatus) {
+                                RootManager.Status.AVAILABLE -> VigilIcons.checkCircle
+                                RootManager.Status.DENIED -> VigilIcons.warning
+                                else -> VigilIcons.cancel
+                            },
+                            null,
+                            tint = when (rootStatus) {
+                                RootManager.Status.AVAILABLE -> VigilPalette.Success
+                                RootManager.Status.DENIED -> VigilPalette.Warning
+                                else -> VigilPalette.Danger
+                            }
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text("Root access", style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                text = rootStatus.name.lowercase().replaceFirstChar { it.uppercase() },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        IconButton(onClick = vm::retryRoot) { Icon(VigilIcons.restore, "Recheck root") }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SmallButton("Write hosts file", onClick = vm::applyRootHosts)
+                        SmallButton("Remove hosts entries", onClick = vm::clearRootHosts)
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = "Hosts blocking is system-wide and survives a reboot while the entries stay in place.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    ToggleRow("Keep root rules", "Keep hosts entries in sync with your lists", rootEnabled) {
+                        vm.setFlag(com.vigil.app.data.datastore.PrefKeys.ROOT_ENABLED, it)
+                    }
+                }
+            }
+        }
+
+        item { SectionTitle("Custom domains", "Yours, stored locally") }
+
+        item { DomainInput(onAdd = vm::addDomain) }
+
+        item {
+            GlassRow {
+                Column(Modifier.fillMaxWidth()) {
+                    val custom = domains.filter { it.source == "custom" }
+                    if (custom.isEmpty()) {
+                        Text(
+                            "No custom domains yet.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    } else {
+                        custom.forEach { entry ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    if (entry.type == "allowed") VigilIcons.checkCircle else VigilIcons.block,
+                                    null,
+                                    tint = if (entry.type == "allowed") VigilPalette.Success else VigilPalette.Danger,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    text = entry.domain,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontFamily = FontFamily.Monospace,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = entry.type,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                IconButton(onClick = { vm.removeDomain(entry.domain) }) {
+                                    Icon(VigilIcons.delete, "Remove ${entry.domain}")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        item { SectionTitle("Verify", "Runs the same matcher the filter uses") }
+
+        item { TestInput(onTest = vm::testBlocking) }
+
+        item { SectionTitle("Guardrails") }
+
+        item {
+            GlassRow {
+                Column(Modifier.fillMaxWidth()) {
+                    ToggleRow("Friction before disabling", "Adds a pause and a summary before protection turns off", friction) {
+                        vm.setFlag(com.vigil.app.data.datastore.PrefKeys.FRICTION, it)
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        "VIGIL never blocks uninstalling, never hides itself and never fights the device owner. Stopping protection is always one confirmed tap away.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        item {
+            GlassRow(onClick = vm::emergencyStop) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(VigilIcons.emergency, null, tint = VigilPalette.Danger)
+                    Spacer(Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            "Emergency stop",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = VigilPalette.Danger
+                        )
+                        Text(
+                            "Turns every block off right now",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
-enum class DomainType { Blocked, Allowed }
-
 @Composable
-fun CustomDomainRow(
-    domain: String,
-    type: DomainType,
-    onDelete: () -> Unit
+private fun ToggleRow(
+    label: String,
+    detail: String,
+    checked: Boolean,
+    onChange: (Boolean) -> Unit
 ) {
-    val (color, iconRes) = when (type) {
-        DomainType.Blocked -> VigilPalette.Danger to androidx.compose.material.icons.Icons.Default.Block
-        DomainType.Allowed -> VigilPalette.Success to androidx.compose.material.icons.Icons.Default.CheckCircle
-    }
-
-    androidx.compose.foundation.layout.Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        androidx.compose.foundation.layout.Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(color = color.copy(alpha = 0.15f), shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(imageVector = iconRes, contentDescription = "", tint = color, modifier = Modifier.size(16.dp))
-            }
+        Column(Modifier.weight(1f).padding(end = 12.dp)) {
+            Text(label, style = MaterialTheme.typography.titleSmall)
             Text(
-                text = domain,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                detail,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        IconButton(onClick = onDelete) {
-            Icon(imageVector = androidx.compose.material.icons.Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+        Switch(checked = checked, onCheckedChange = onChange)
     }
 }
 
 @Composable
-fun AddDomainButton(onClick: () -> Unit) {
-    GlassRow(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
+private fun SmallButton(label: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(VigilPalette.IcyCyan.copy(alpha = 0.16f))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 10.dp)
     ) {
-        androidx.compose.foundation.layout.Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(imageVector = androidx.compose.material.icons.Icons.Default.Add, contentDescription = "", tint = MaterialTheme.colorScheme.primary)
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "Add Custom Domain", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
-        }
-    }
-}
-
-enum class RootStatus { Available, NotAvailable, Denied }
-
-@Composable
-fun RootStatusRow(
-    title: String,
-    status: RootStatus,
-    description: String
-) {
-    val (color, iconRes) = when (status) {
-        RootStatus.Available -> VigilPalette.Success to androidx.compose.material.icons.Icons.Default.CheckCircle
-        RootStatus.NotAvailable -> MaterialTheme.colorScheme.onSurfaceVariant to androidx.compose.material.icons.Icons.Default.Cancel
-        RootStatus.Denied -> VigilPalette.Warning to androidx.compose.material.icons.Icons.Default.Warning
-    }
-
-    androidx.compose.foundation.layout.Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        androidx.compose.foundation.layout.Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Box(
-                modifier = Modifier.size(32.dp).background(color = color.copy(alpha = 0.15f), shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(imageVector = iconRes, contentDescription = "", tint = color, modifier = Modifier.size(16.dp))
-            }
-            Column {
-                Text(text = title, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                Text(text = description, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
         Text(
-            text = when (status) {
-                RootStatus.Available -> "Available"
-                RootStatus.NotAvailable -> "Not Available"
-                RootStatus.Denied -> "Denied"
-            },
-            style = MaterialTheme.typography.labelMedium,
-            color = color
+            label,
+            style = MaterialTheme.typography.labelLarge,
+            color = VigilPalette.IcyCyan
         )
     }
 }
 
 @Composable
-fun AppRestrictionRow(
-    appName: String,
-    packageName: String,
-    isRestricted: Boolean,
-    onToggle: (Boolean) -> Unit
-) {
-    androidx.compose.foundation.layout.Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        androidx.compose.foundation.layout.Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(color = MaterialTheme.colorScheme.surfaceContainerHighest, shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(imageVector = androidx.compose.material.icons.Icons.Default.Android, contentDescription = "", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
-            }
-            Column {
-                Text(text = appName, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                Text(text = packageName, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
-            }
-        }
-        Switch(
-            checked = isRestricted,
-            onCheckedChange = onToggle,
-            colors = androidx.compose.material3.SwitchDefaults.colors(
-                checkedThumbColor = VigilPalette.IcyCyan,
-                checkedTrackColor = VigilPalette.IcyCyan.copy(alpha = 0.3f)
+private fun DomainInput(onAdd: (String, Boolean) -> Unit) {
+    var text by remember { mutableStateOf("") }
+    var allowed by remember { mutableStateOf(false) }
+    GlassRow {
+        Column(Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text("Domain") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
             )
-        )
-    }
-}
-
-@Composable
-fun AddAppButton(onClick: () -> Unit) {
-    GlassRow(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
-    ) {
-        androidx.compose.foundation.layout.Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(imageVector = androidx.compose.material.icons.Icons.Default.Add, contentDescription = "", tint = MaterialTheme.colorScheme.primary)
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "Add Restricted App", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SmallButton("Block") { allowed = false }
+                SmallButton("Allow") { allowed = true }
+                Spacer(Modifier.weight(1f))
+                SmallButton("Add") {
+                    if (text.isNotBlank()) {
+                        onAdd(text, allowed)
+                        text = ""
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-fun TestButton(
-    title: String,
-    description: String,
-    onClick: () -> Unit
-) {
-    GlassRow(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
-    ) {
-        androidx.compose.foundation.layout.Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                Text(text = title, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                Text(text = description, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun TestInput(onTest: (String) -> Unit) {
+    var host by remember { mutableStateOf("") }
+    GlassRow {
+        Column(Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = host,
+                onValueChange = { host = it },
+                label = { Text("Domain to test") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SmallButton("Test now") {
+                    if (host.isNotBlank()) onTest(host)
+                }
+                SmallButton("pornhub.com") { host = "pornhub.com"; onTest("pornhub.com") }
+                SmallButton("example.com") { host = "example.com"; onTest("example.com") }
             }
-            Icon(imageVector = androidx.compose.material.icons.Icons.Default.PlayArrow, contentDescription = "Run test", tint = MaterialTheme.colorScheme.primary)
-        }
-    }
-}
-
-@Composable
-fun RecoveryButton(
-    title: String,
-    description: String,
-    color: Color,
-    onClick: () -> Unit
-) {
-    GlassRow(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
-    ) {
-        androidx.compose.foundation.layout.Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                Text(text = title, style = MaterialTheme.typography.bodyMedium, color = color)
-                Text(text = description, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Icon(imageVector = androidx.compose.material.icons.Icons.Default.ChevronRight, contentDescription = "", tint = color)
         }
     }
 }

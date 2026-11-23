@@ -51,6 +51,9 @@ val LocalGlassTokens = staticCompositionLocalOf {
     )
 }
 
+/** When false, surfaces render flat instead of layered glass. */
+val LocalGlassEnabled = staticCompositionLocalOf { true }
+
 val DarkScheme = darkColorScheme(
     primary = VigilPalette.IcyCyan,
     onPrimary = VigilPalette.DeepBlack,

@@ -6,26 +6,26 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-/** Bold, confident, minimal typography with strong hierarchy. */
+/** Calm, light-weight typography with large display sizes. */
 val VigilTypography = Typography(
     displayLarge = TextStyle(
-        fontFamily = FontFamily.Default, fontWeight = FontWeight.ExtraBold,
+        fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium,
         fontSize = 56.sp, lineHeight = 60.sp, letterSpacing = (-1).sp
     ),
     displayMedium = TextStyle(
-        fontFamily = FontFamily.Default, fontWeight = FontWeight.ExtraBold,
+        fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium,
         fontSize = 44.sp, lineHeight = 48.sp, letterSpacing = (-0.5).sp
     ),
     displaySmall = TextStyle(
-        fontFamily = FontFamily.Default, fontWeight = FontWeight.Bold,
+        fontFamily = FontFamily.Default, fontWeight = FontWeight.SemiBold,
         fontSize = 36.sp, lineHeight = 42.sp
     ),
     headlineLarge = TextStyle(
-        fontFamily = FontFamily.Default, fontWeight = FontWeight.Bold,
+        fontFamily = FontFamily.Default, fontWeight = FontWeight.SemiBold,
         fontSize = 30.sp, lineHeight = 38.sp
     ),
     headlineMedium = TextStyle(
-        fontFamily = FontFamily.Default, fontWeight = FontWeight.Bold,
+        fontFamily = FontFamily.Default, fontWeight = FontWeight.SemiBold,
         fontSize = 26.sp, lineHeight = 32.sp
     ),
     headlineSmall = TextStyle(
@@ -33,11 +33,11 @@ val VigilTypography = Typography(
         fontSize = 22.sp, lineHeight = 28.sp
     ),
     titleLarge = TextStyle(
-        fontFamily = FontFamily.Default, fontWeight = FontWeight.SemiBold,
+        fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium,
         fontSize = 20.sp, lineHeight = 26.sp
     ),
     titleMedium = TextStyle(
-        fontFamily = FontFamily.Default, fontWeight = FontWeight.SemiBold,
+        fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium,
         fontSize = 16.sp, lineHeight = 22.sp, letterSpacing = 0.15.sp
     ),
     titleSmall = TextStyle(
@@ -73,11 +73,11 @@ val VigilTypography = Typography(
 /** Large numeric styles used by the hero indicators. */
 object VigilText {
     val heroNumber = TextStyle(
-        fontFamily = FontFamily.Default, fontWeight = FontWeight.ExtraBold,
-        fontSize = 64.sp, lineHeight = 68.sp, letterSpacing = (-2).sp
+        fontFamily = FontFamily.Default, fontWeight = FontWeight.Light,
+        fontSize = 72.sp, lineHeight = 76.sp, letterSpacing = (-3).sp
     )
     val statNumber = TextStyle(
-        fontFamily = FontFamily.Default, fontWeight = FontWeight.Bold,
+        fontFamily = FontFamily.Default, fontWeight = FontWeight.SemiBold,
         fontSize = 34.sp, lineHeight = 38.sp
     )
 }

@@ -18,19 +18,13 @@ import androidx.compose.ui.unit.dp
  */
 object VigilIcons {
 
-    val shield: ImageVector by lazy { icon(PATH_SHIELD) }
-    val shieldOff: ImageVector by lazy { icon(PATH_SHIELD_OFF) }
     val calendar: ImageVector by lazy { icon(PATH_CALENDAR) }
     val calendarMonth: ImageVector by lazy { calendar }
-    val block: ImageVector by lazy { icon(PATH_BLOCK) }
     val checkCircle: ImageVector by lazy { icon(PATH_CHECK_CIRCLE) }
     val flame: ImageVector by lazy { icon(PATH_FLAME) }
-    val security: ImageVector by lazy { icon(PATH_LOCK) }
     val science: ImageVector by lazy { icon(PATH_SPARKLE) }
     val edit: ImageVector by lazy { icon(PATH_EDIT) }
     val trendingUp: ImageVector by lazy { icon(PATH_TRENDING) }
-    val dns: ImageVector by lazy { icon(PATH_DNS) }
-    val root: ImageVector by lazy { icon(PATH_ROOT) }
     val list: ImageVector by lazy { icon(PATH_LIST) }
     val chevronRight: ImageVector by lazy { icon(PATH_CHEVRON_RIGHT) }
     val back: ImageVector by lazy { icon(PATH_CHEVRON_LEFT) }
@@ -48,7 +42,7 @@ object VigilIcons {
     val darkMode: ImageVector by lazy { icon(PATH_MOON) }
     val sparkle: ImageVector by lazy { icon(PATH_SPARKLE) }
     val accessibility: ImageVector by lazy { icon(PATH_USER) }
-    val privacy: ImageVector by lazy { icon(PATH_SHIELD) }
+    val privacy: ImageVector by lazy { icon(PATH_LOCK) }
     val device: ImageVector by lazy { icon(PATH_PHONE) }
     val noAnalytics: ImageVector by lazy { icon(PATH_TRENDING) }
     val noAccount: ImageVector by lazy { icon(PATH_USER_OFF) }
@@ -87,14 +81,8 @@ private fun icon(pathData: String): ImageVector =
         )
     }.build()
 
-private const val PATH_SHIELD =
-    "M12 2.5 L19.5 5.5 V11.2 C19.5 16.3 16.2 20.1 12 21.5 C7.8 20.1 4.5 16.3 4.5 11.2 V5.5 Z"
-private const val PATH_SHIELD_OFF =
-    "M12 2.5 L19.5 5.5 V11.2 C19.5 16.3 16.2 20.1 12 21.5 C7.8 20.1 4.5 16.3 4.5 11.2 V5.5 Z M3.5 3.5 L20.5 20.5"
 private const val PATH_CALENDAR =
     "M4.5 6.5 H19.5 V20 H4.5 Z M4.5 10.5 H19.5 M8.5 3.5 V7.5 M15.5 3.5 V7.5"
-private const val PATH_BLOCK =
-    "M12 2.5 A9.5 9.5 0 1 0 12 21.5 A9.5 9.5 0 1 0 12 2.5 M6.2 6.2 L17.8 17.8"
 private const val PATH_CHECK_CIRCLE =
     "M12 2.5 A9.5 9.5 0 1 0 12 21.5 A9.5 9.5 0 1 0 12 2.5 M7.5 12.2 L10.8 15.5 L16.8 9"
 private const val PATH_FLAME =
@@ -107,10 +95,6 @@ private const val PATH_EDIT =
     "M4.5 19.5 H8 L18.6 8.9 A2.1 2.1 0 0 0 15.6 5.9 L5 16.5 Z M14.2 7.3 L16.7 9.8"
 private const val PATH_TRENDING =
     "M3.5 17 L9.5 11 L13.2 14.7 L20.5 7.4 M15.5 7.4 H20.5 V12.4"
-private const val PATH_DNS =
-    "M4 6.5 H20 M4 12 H20 M4 17.5 H13.5"
-private const val PATH_ROOT =
-    "M12 2.5 L19.5 6 V12 C19.5 16.8 16.2 20.2 12 21.5 C7.8 20.2 4.5 16.8 4.5 12 V6 Z M12 8.5 V15.5 M8.5 12 H15.5"
 private const val PATH_LIST = "M5 6.5 H19.5 M5 12 H19.5 M5 17.5 H13"
 private const val PATH_CHEVRON_RIGHT = "M9.5 5 L16.5 12 L9.5 19"
 private const val PATH_CHEVRON_LEFT = "M14.5 5 L7.5 12 L14.5 19"

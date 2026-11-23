@@ -137,31 +137,37 @@ class VigilVpnService : VpnService() {
             }
             if (length <= 0) continue
             val packet = buffer.copyOf(length)
-            val query = DnsPacket.parseQuery(packet) ?: continue
+            val query = DnsPacket.parse(packet)
+            if (query == null) {
+                // Not a DNS/UDP question we can answer: pass it straight back
+                // rather than swallowing it.
+                writeSafely(output, packet)
+                continue
+            }
 
             relayPool.execute {
-                val response = try {
-                    if (blocklist.isBlocked(query.host)) {
-                        blockedCount.incrementAndGet()
-                        scope.launch {
-                            AppServices.app(this@VigilVpnService).repository.logBlocked(query.host)
+                val answer = try {
+                    when {
+                        blocklist.isBlocked(query.host) -> {
+                            blockedCount.incrementAndGet()
+                            scope.launch {
+                                AppServices.app(this@VigilVpnService)
+                                    .repository.logBlocked(query.host)
+                            }
+                            DnsPacket.nxDomain(query)
                         }
-                        DnsPacket.nxDomain(packet)
-                    } else {
-                        relay(packet)
+
+                        else -> {
+                            val upstreamDns = relay(query.payload)
+                            if (upstreamDns == null) null else DnsPacket.wrap(query, upstreamDns)
+                        }
                     }
                 } catch (t: Throwable) {
                     Log.w(TAG, "dns handling failed for ${query.host}", t)
                     null
                 }
 
-                if (response != null) {
-                    try {
-                        output.write(response)
-                    } catch (t: Throwable) {
-                        Log.w(TAG, "write failed", t)
-                    }
-                }
+                if (answer != null) writeSafely(output, answer)
             }
         }
 
@@ -169,7 +175,8 @@ class VigilVpnService : VpnService() {
         runCatching { output.close() }
     }
 
-    private fun relay(packet: ByteArray): ByteArray? {
+    /** Sends a raw DNS payload upstream and returns the DNS bytes of the reply. */
+    private fun relay(dnsPayload: ByteArray): ByteArray? {
         DatagramSocket().use { socket ->
             try {
                 protect(socket)
@@ -177,11 +184,20 @@ class VigilVpnService : VpnService() {
             }
             socket.soTimeout = 4000
             val target = InetSocketAddress(InetAddress.getByName(upstream()), 53)
-            socket.send(DatagramPacket(packet, packet.size, target))
+            socket.send(DatagramPacket(dnsPayload, dnsPayload.size, target))
             val reply = ByteArray(4096)
             val incoming = DatagramPacket(reply, reply.size)
             socket.receive(incoming)
             return reply.copyOf(incoming.length)
+        }
+    }
+
+    private fun writeSafely(output: FileOutputStream, packet: ByteArray) {
+        try {
+            output.write(packet)
+            output.flush()
+        } catch (t: Throwable) {
+            Log.w(TAG, "write failed", t)
         }
     }
 

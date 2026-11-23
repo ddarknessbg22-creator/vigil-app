@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.Color
 
 /** VIGIL palette: deep black, graphite, charcoal, icy cyan, electric blue. */
 object VigilPalette {
-    val IcyCyan = Color(0xFF00E5FF)
+    val IcyCyan = Color(0xFFAADECB)
     val ElectricBlue = Color(0xFF0091EA)
     val CoolWhite = Color(0xFFE8F4FD)
 
@@ -79,9 +79,9 @@ val DarkScheme = darkColorScheme(
 )
 
 val LightScheme = lightColorScheme(
-    primary = Color(0xFF00668A),
+    primary = Color(0xFF286354),
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFBEE9FF),
+    primaryContainer = Color(0xFFD2EBDD),
     onPrimaryContainer = Color(0xFF001E2B),
     secondary = Color(0xFF00639B),
     onSecondary = Color.White,

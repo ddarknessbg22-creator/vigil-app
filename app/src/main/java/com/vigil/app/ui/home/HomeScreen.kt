@@ -1,250 +1,36 @@
 package com.vigil.app.ui.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.*
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.vigil.app.data.*
 import com.vigil.app.ui.VigilViewModel
-import com.vigil.app.ui.components.GlassRow
-import com.vigil.app.ui.components.GlassSurface
-import com.vigil.app.ui.theme.VigilIcons
-import com.vigil.app.ui.theme.VigilPalette
-import com.vigil.app.ui.theme.VigilText
+import com.vigil.app.ui.components.*
+import java.time.*
+import java.time.format.DateTimeFormatter
 
-@Composable
-fun HomeScreen(
-    vm: VigilViewModel,
-    onOpenProtection: () -> Unit,
-    onOpenProgress: () -> Unit
-) {
-    val protection by vm.protectionEnabled.collectAsStateWithLifecycle()
-    val stats by vm.stats.collectAsStateWithLifecycle()
-    val goals by vm.goals.collectAsStateWithLifecycle()
-    val domains by vm.domains.collectAsStateWithLifecycle()
-
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp, 12.dp, 16.dp, 96.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        item {
-            Column {
-                Text(
-                    text = "VIGIL",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Text(
-                    text = "Discipline is a decision.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+@Composable fun HomeScreen(vm:VigilViewModel){
+    val now by vm.clock.collectAsStateWithLifecycle();val time=Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault());val today=time.toLocalDate();val runs by vm.runs.collectAsStateWithLifecycle();val run=runs.firstOrNull { it.end==null };val elapsed=run?.elapsed(now)?:Duration.ZERO
+    val entries by vm.entries.collectAsStateWithLifecycle();val check=remember(entries,today){entries.firstOrNull { it.day==today.toString() }};val all by vm.quotes.collectAsStateWithLifecycle();val o by vm.options.collectAsStateWithLifecycle();val q=remember(all,today,time.hour,o.category){Quotes.featured(all,time.toLocalDateTime(),o.category)};LaunchedEffect(q?.id){q?.let { vm.seen(it.id) }}
+    var sheet by rememberSaveable { mutableStateOf(false) };val c=LocalContext.current
+    Page("Today","V I G I L    /    ${today.format(DateTimeFormatter.ofPattern("EEE, d MMM"))}"){
+        Column(Modifier.fillMaxWidth().background(Brush.linearGradient(listOf(Color(0xFF123F40),Color(0xFF29645D),Color(0xFF38514E))),RoundedCornerShape(32.dp)).padding(24.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
+            Text("CURRENT STREAK",color=Color(0xFFC4E8D9),letterSpacing=1.7.sp,style=MaterialTheme.typography.labelMedium)
+            Text(if(run==null) "—" else elapsed.toDays().toString(),fontSize=84.sp,lineHeight=90.sp,fontWeight=FontWeight.Light,letterSpacing=(-4).sp,color=Color.White)
+            Text(if(run==null) "Your starting point" else if(elapsed.toDays()==1L) "day of commitment" else "days of commitment",color=Color.White,style=MaterialTheme.typography.titleLarge)
+            Spacer(Modifier.height(6.dp));if(run!=null){Text("${elapsed.toHours()%24} hours   ·   ${elapsed.toMinutes()%60} minutes",color=Color(0xFFE2F2E9));LinearProgressIndicator(progress={ (elapsed.toMinutes()%1440)/1440f },modifier=Modifier.fillMaxWidth().padding(top=8.dp),color=Color(0xFFB2E2D0),trackColor=Color.White.copy(alpha=.18f))} else Text("Choose when your commitment began.",color=Color.White)
         }
-
-        item { ProtectionCard(protection, stats.streak, stats.blocked, onOpenProtection) }
-
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                MetricCard(
-                    modifier = Modifier.weight(1f),
-                    value = stats.streak.toString(),
-                    label = "day streak",
-                    icon = VigilIcons.flame,
-                    tint = VigilPalette.Warning
-                )
-                MetricCard(
-                    modifier = Modifier.weight(1f),
-                    value = stats.best.toString(),
-                    label = "best run",
-                    icon = VigilIcons.trophy,
-                    tint = VigilPalette.IcyCyan
-                )
-                MetricCard(
-                    modifier = Modifier.weight(1f),
-                    value = stats.checkIns.toString(),
-                    label = "check-ins",
-                    icon = VigilIcons.checkCircle,
-                    tint = VigilPalette.Success
-                )
-            }
-        }
-
-        item {
-            GlassRow(onClick = onOpenProtection) {
-                Column(Modifier.fillMaxWidth()) {
-                    Text("Protection", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = when {
-                            !protection -> "Blocking is off. Nothing is being filtered."
-                            else -> "${domains.size} domains in your lists are being enforced."
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Box(Modifier.align(Alignment.TopEnd)) {
-                    Icon(VigilIcons.chevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
-
-        item {
-            GlassRow(onClick = onOpenProgress) {
-                Column(Modifier.fillMaxWidth()) {
-                    Text("Today's goal", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(6.dp))
-                    val goal = goals.firstOrNull()
-                    if (goal == null) {
-                        Text(
-                            "No active goal. Set one in Progress.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    } else {
-                        Text(goal.title, style = MaterialTheme.typography.titleSmall)
-                        Spacer(Modifier.height(8.dp))
-                        val elapsed =
-                            ((System.currentTimeMillis() - goal.startDate) / 86_400_000.0).toInt()
-                        val progress = (elapsed.toFloat() / goal.targetDays).coerceIn(0f, 1f)
-                        LinearProgressIndicator(
-                            modifier = Modifier.fillMaxWidth(),
-                            progress = { progress },
-                            color = VigilPalette.IcyCyan
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        val left = (goal.targetDays - elapsed).coerceAtLeast(0)
-                        Text(
-                            text = "${(progress * 100).toInt()}% · $left days left",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-        }
-
-        item {
-            GlassRow(onClick = onOpenProtection) {
-                Column(Modifier.fillMaxWidth()) {
-                    Text("Blocked today", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = "${stats.blocked} requests stopped",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
+        q?.let { QuoteCard(it,if(time.hour in 5..17) "Morning note" else "Evening note") }
+        Button(onClick={if(run==null)pickStart(c,vm::start)else sheet=true},modifier=Modifier.fillMaxWidth().heightIn(min=54.dp)){Text(if(run==null) "Set my start date" else if(check==null) "Check in for today" else "View today’s check-in")}
     }
+    if(sheet){var note by rememberSaveable { mutableStateOf(check?.note.orEmpty()) };Sheet("A moment for today",{sheet=false}){Text(if(time.hour in 5..17) "What would you like to make room for today?" else "What helped you stay close to your intention?");OutlinedTextField(note,{note=it.take(4000)},label={Text("Private reflection (optional)")},minLines=3);Button(onClick={vm.reflect(note);sheet=false}){Text(if(check==null) "Keep my commitment" else "Save reflection")}}}
 }
-
-@Composable
-private fun ProtectionCard(
-    enabled: Boolean,
-    streak: Int,
-    blocked: Int,
-    onClick: () -> Unit
-) {
-    val tint = if (enabled) VigilPalette.Success else VigilPalette.Danger
-    GlassSurface(modifier = Modifier.fillMaxWidth(), strong = true, onClick = onClick) {
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                imageVector = if (enabled) VigilIcons.shield else VigilIcons.shieldOff,
-                contentDescription = null,
-                tint = tint,
-                modifier = Modifier.size(54.dp)
-            )
-            Spacer(Modifier.height(10.dp))
-            Text(
-                text = if (enabled) "PROTECTED" else "EXPOSED",
-                style = VigilText.statNumber,
-                color = tint
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = if (enabled) "DNS filtering is enforcing your lists" else "No filtering is running",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            Spacer(Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                InlineStat("$streak", "streak", VigilIcons.flame)
-                InlineStat("$blocked", "blocked", VigilIcons.block)
-            }
-        }
-    }
-}
-
-@Composable
-private fun InlineStat(value: String, label: String, icon: ImageVector) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
-        Spacer(Modifier.size(6.dp))
-        Text(
-            text = "$value $label",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
-
-@Composable
-private fun MetricCard(
-    modifier: Modifier,
-    value: String,
-    label: String,
-    icon: ImageVector,
-    tint: Color
-) {
-    GlassRow(modifier = modifier) {
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = value,
-                style = VigilText.statNumber,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-

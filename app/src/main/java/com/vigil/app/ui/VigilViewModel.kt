@@ -99,21 +99,25 @@ class VigilViewModel(app: Application) : AndroidViewModel(app) {
         repo.checkInFlow()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    val rootStatus: StateFlow<RootManager.Status> =
-        MutableStateFlow(root.status())
+    private val _today = MutableStateFlow<CheckInEntity?>(null)
+    val today: StateFlow<CheckInEntity?> = _today.asStateFlow()
+
+    private val _rootStatus = MutableStateFlow(root.status())
+    val rootStatus: StateFlow<RootManager.Status> = _rootStatus.asStateFlow()
 
     val vpnRunning: StateFlow<Boolean> = VigilVpnService.isRunning
 
     init {
         viewModelScope.launch {
             blocklist.init()
-            rootStatus.value = root.status()
+            _rootStatus.value = root.status()
             refresh()
         }
     }
 
     suspend fun refresh() {
         val totals = repo.totals()
+        _today.value = repo.todayCheckIn()
         _stats.value = Stats(
             streak = repo.streakDays(),
             best = repo.longestStreak(),
@@ -123,12 +127,10 @@ class VigilViewModel(app: Application) : AndroidViewModel(app) {
         )
     }
 
-    suspend fun todayCheckIn(): CheckInEntity? = repo.todayCheckIn()
-
     fun retryRoot() {
         viewModelScope.launch {
-            rootStatus.value = root.requestAccess()
-            _message.value = when (rootStatus.value) {
+            _rootStatus.value = root.requestAccess()
+            _message.value = when (_rootStatus.value) {
                 RootManager.Status.AVAILABLE -> "Root granted. Hosts blocking is available."
                 RootManager.Status.DENIED -> "Root request was denied."
                 RootManager.Status.NOT_ROOTED -> "No root manager found on this device."

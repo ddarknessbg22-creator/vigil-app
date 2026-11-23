@@ -52,7 +52,7 @@ fun ProgressScreen(vm: VigilViewModel) {
     val stats by vm.stats.collectAsStateWithLifecycle()
     val checkIns by vm.checkIns.collectAsStateWithLifecycle()
     val goals by vm.goals.collectAsStateWithLifecycle()
-    val today by remember { mutableStateOf(vm.todayCheckIn()) }
+    val today by vm.today.collectAsStateWithLifecycle()
 
     LazyColumn(
         modifier = Modifier
@@ -125,7 +125,6 @@ fun ProgressScreen(vm: VigilViewModel) {
 
         item { CheckInCard(today?.mood ?: 0, today?.hadRelapse ?: false) { mood, notes, urge, relapse ->
             vm.saveCheckIn(mood, notes, urge, relapse)
-            today = vm.todayCheckIn()
         } }
 
         item { SectionTitle("Goals") }

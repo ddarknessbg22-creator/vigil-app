@@ -23,11 +23,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vigil.app.data.Quotes
+import com.vigil.app.data.elapsed
 import com.vigil.app.data.room.Entry
 import com.vigil.app.ui.VigilViewModel
 import com.vigil.app.ui.components.Page
 import com.vigil.app.ui.components.QuoteCard
 import com.vigil.app.ui.components.Sheet
+import com.vigil.app.ui.components.pickStart
 import com.vigil.app.ui.theme.VigilText
 import java.time.Duration
 import java.time.Instant

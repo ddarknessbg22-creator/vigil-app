@@ -28,7 +28,6 @@ import androidx.compose.ui.text.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.Icons.Default.*
 import com.vigil.app.ui.components.GlassRow
 import com.vigil.app.ui.components.GlassSurface
 import com.vigil.app.ui.components.SectionTitle
@@ -74,7 +73,7 @@ fun ProtectionStatusCard(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = if (isProtected) Shield else ShieldOff,
+                    imageVector = if (isProtected) Icons.Default.Icons.Default.Shield else ShieldOff,
                     contentDescription = if (isProtected) "Protection Active" else "Protection Inactive",
                     tint = if (isProtected) VigilPalette.Success else VigilPalette.Danger,
                     modifier = Modifier.size(48.dp)
@@ -97,13 +96,13 @@ fun ProtectionStatusCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                StatItem(value = daysProtected, label = "Days Protected", icon = CalendarToday)
+                StatItem(value = daysProtected, label = "Days Protected", icon = Icons.Default.Icons.Default.CalendarToday)
                 VerticalDivider(
                     modifier = Modifier.fillMaxHeight().width(1.dp),
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                     thickness = 1.dp
                 )
-                StatItem(value = blockedToday, label = "Blocked Today", icon = Block)
+                StatItem(value = blockedToday, label = "Blocked Today", icon = Icons.Default.Icons.Default.Block)
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(
@@ -210,9 +209,9 @@ fun QuickStatsRow() {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        QuickStatCard("This Week", "6", "check-ins", CheckCircle, VigilPalette.Success)
-        QuickStatCard("Streak", "47", "days", LocalFireDepartment, VigilPalette.Warning)
-        QuickStatCard("Blocked", "234", "total", Security, VigilPalette.IcyCyan)
+        QuickStatCard("This Week", "6", "check-ins", Icons.Default.Icons.Default.CheckCircle, VigilPalette.Success)
+        QuickStatCard("Streak", "47", "days", Icons.Default.Icons.Default.LocalFireDepartment, VigilPalette.Warning)
+        QuickStatCard("Blocked", "234", "total", Icons.Default.Icons.Default.Security, VigilPalette.IcyCyan)
     }
 }
 
@@ -225,7 +224,7 @@ fun QuickStatCard(
     color: Color
 ) {
     GlassRow(
-        modifier = Modifier.weight(1f).height(100.dp)
+        modifier = Modifier.fillMaxWidth().height(100.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -277,17 +276,17 @@ fun QuickActionsSection() {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 QuickActionButton(
-                    icon = Science,
+                    icon = Icons.Default.Icons.Default.Science,
                     label = "Test Blocking",
                     color = VigilPalette.IcyCyan
                 )
                 QuickActionButton(
-                    icon = EditNote,
+                    icon = Icons.Default.Icons.Default.EditNote,
                     label = "Daily Check-in",
                     color = VigilPalette.Success
                 )
                 QuickActionButton(
-                    icon = TrendingUp,
+                    icon = Icons.Default.Icons.Default.TrendingUp,
                     label = "View Progress",
                     color = VigilPalette.ElectricBlue
                 )
@@ -303,7 +302,7 @@ fun QuickActionButton(
     color: Color
 ) {
     GlassRow(
-        modifier = Modifier.weight(1f).height(80.dp)
+        modifier = Modifier.fillMaxWidth().height(80.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -353,19 +352,19 @@ fun BlockingStatusCard() {
             BlockingStatusRow(
                 title = "DNS Filtering",
                 subtitle = "Active",
-                icon = Dns,
+                icon = Icons.Default.Icons.Default.Dns,
                 status = BlockingStatus.Active
             )
             BlockingStatusRow(
                 title = "Root Integration",
                 subtitle = "Available",
-                icon = AdminPanelSettings,
+                icon = Icons.Default.Icons.Default.AdminPanelSettings,
                 status = BlockingStatus.Active
             )
             BlockingStatusRow(
                 title = "Custom Domains",
                 subtitle = "12 blocked",
-                icon = ListAlt,
+                icon = Icons.Default.Icons.Default.ListAlt,
                 status = BlockingStatus.Active
             )
         }
@@ -424,7 +423,7 @@ fun BlockingStatusRow(
             }
         }
         Icon(
-            imageVector = ChevronRight,
+            imageVector = Icons.Default.Icons.Default.ChevronRight,
             contentDescription = "",
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp)

@@ -19,6 +19,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,7 +62,7 @@ fun TopBar(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Alignment.CenterVertically
+        horizontalArrangement = Arrangement.Center
     ) {
         IconButton(onClick = onBack) {
             Icon(
@@ -188,7 +190,7 @@ fun MilestoneItem(
             ) {
                 Icon(imageVector = icon, contentDescription = "", tint = if (achieved) color else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f), modifier = Modifier.size(22.dp))
             }
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.fillMaxWidth()) {
                 Text(text = title, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                 Text(text = description, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -328,7 +330,7 @@ fun DailyCheckInCard() {
                 Text(text = "Daily Check-in", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                 Text(text = "Reflect on your day", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.fillMaxWidth())
             Icon(imageVector = Icons.Default.ChevronRight, contentDescription = "", tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }

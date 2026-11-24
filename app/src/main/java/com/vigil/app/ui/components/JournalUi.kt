@@ -116,7 +116,7 @@ fun Page(
 
 @Composable
 private fun animateFloatAsStateCompat(target: Float) =
-    androidx.compose.animation.animateFloatAsState(
+    androidx.compose.animation.core.animateFloatAsState(
         target,
         animationSpec = tween(320),
         label = "pageEntrance"

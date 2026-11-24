@@ -114,20 +114,6 @@ fun SettingsScreen(vm: VigilViewModel) {
             ) { vm.theme(it) }
         }
 
-        SectionHeader("READING")
-        SettingsGroup {
-            SettingsValueRow(
-                title = "Daily quote theme",
-                value = o.category,
-                onClick = { sheet = "category" }
-            )
-            SettingsValueRow(
-                title = "Reading room",
-                value = "${all.size} offline lines",
-                onClick = { sheet = "reading" }
-            )
-        }
-
         SectionHeader("UPDATES")
         SettingsGroup {
             SettingsValueRow(
@@ -184,15 +170,6 @@ fun SettingsScreen(vm: VigilViewModel) {
                 }
             }
 
-            "reading" -> {
-                Text("${all.size} lines across ${all.map { it.category }.distinct().size} themes.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Most of these are original VIGIL lines. Some carry their author's name when they are attributed classics.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-
             "restore" -> {
                 Text(
                     "A valid backup replaces your streaks, goals, reflections and saved quotes. Export first if you want a copy.",
@@ -215,7 +192,6 @@ fun SettingsScreen(vm: VigilViewModel) {
 private fun sheetTitle(key: String) = when (key) {
     "streak" -> "Your streak"
     "category" -> "Daily quote theme"
-    "reading" -> "Reading room"
     "restore" -> "Restore backup"
     else -> "Settings"
 }

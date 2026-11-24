@@ -61,6 +61,8 @@ fun HomeScreen(vm: VigilViewModel) {
         Instant.ofEpochMilli(run.start).atZone(ZoneId.systemDefault()).toLocalDate() == today
     val all by vm.quotes.collectAsStateWithLifecycle()
     val o by vm.options.collectAsStateWithLifecycle()
+    val streakDaysForVoice = if (run == null) 0L else
+        (now - run.start).coerceAtLeast(0) / 86_400_000
     // Keyed on the day, so the featured quote doesn't churn every hour.
     val q = remember(all, today, o.category) {
         Quotes.featured(all, time.toLocalDateTime(), o.category)
@@ -93,9 +95,9 @@ fun HomeScreen(vm: VigilViewModel) {
             onSetStart = { pickStart(c, vm::start) }
         )
 
-        TodayDecision(check, windowOpen, opensAt) { deciding = it }
+        q?.let { QuoteCard(it, "${StreakVoice.secondLine(streakDaysForVoice)}  ·  TODAY") }
 
-        q?.let { QuoteCard(it, if (time.hour in 5..17) "Morning note" else "Evening note") }
+        TodayDecision(check, windowOpen, opensAt) { deciding = it }
     }
 
     deciding?.let { clean ->

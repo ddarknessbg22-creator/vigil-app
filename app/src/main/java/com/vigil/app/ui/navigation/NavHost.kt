@@ -25,7 +25,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vigil.app.ui.VigilViewModel
 import com.vigil.app.ui.home.HomeScreen
 import com.vigil.app.ui.progress.ProgressScreen
-import com.vigil.app.ui.quotes.QuotesScreen
 import com.vigil.app.ui.settings.SettingsScreen
 import com.vigil.app.ui.theme.VigilIcons
 import com.vigil.app.ui.theme.VigilTheme
@@ -34,7 +33,6 @@ private data class NavItem(val name: String, val icon: ImageVector)
 
 private val TABS = listOf(
     NavItem("Home", VigilIcons.flame),
-    NavItem("Quotes", VigilIcons.library),
     NavItem("Progress", VigilIcons.calendar),
     NavItem("Settings", VigilIcons.settings)
 )
@@ -83,7 +81,6 @@ fun VigilApp(vm: VigilViewModel = viewModel()) {
         ) { padding ->
             Box(Modifier.fillMaxSize().padding(padding)) {
                 when (tab) {
-                    "Quotes" -> QuotesScreen(vm)
                     "Progress" -> ProgressScreen(vm)
                     "Settings" -> SettingsScreen(vm)
                     else -> HomeScreen(vm)

@@ -18,9 +18,7 @@ import kotlin.math.sin
 
 /**
  * Living blue gradient: a slow sweep of light across the card.
- *
- * The animated value is read inside `drawBehind`, so the animation stays in
- * the draw phase and never re-composes the screen.
+ * The animated value is read inside `drawBehind`, so it never re-composes.
  */
 @Composable
 fun Modifier.livingGradient(
@@ -39,21 +37,23 @@ fun Modifier.livingGradient(
         animationSpec = infiniteRepeatable(tween(periodMs, easing = LinearEasing), RepeatMode.Restart),
         label = "phase"
     )
-    val drift = (sin(phase * 2f * PI) + 1f) / 2f
+    val drift = ((sin(phase.toDouble() * 2.0 * PI) + 1.0) / 2.0).toFloat()
 
     return this.drawBehind {
+        val w = size.width
+        val h = size.height
         drawRect(
             brush = Brush.linearGradient(
                 colors = base,
-                start = Offset(x = -size.width * (0.25f + drift * 0.5f), y = 0f),
-                end = Offset(x = size.width * (1.25f - drift * 0.35f), y = size.height)
+                start = androidx.compose.ui.geometry.Offset(-w * (0.25f + drift * 0.5f), 0f),
+                end = androidx.compose.ui.geometry.Offset(w * (1.25f - drift * 0.35f), h)
             )
         )
         drawRect(
             brush = Brush.radialGradient(
                 colors = listOf(glow.copy(alpha = 0.20f), Color.Transparent),
-                center = Offset(x = size.width * (0.15f + drift * 0.7f), y = size.height * 0.18f),
-                radius = size.width * 0.75f
+                center = androidx.compose.ui.geometry.Offset(w * (0.15f + drift * 0.7f), h * 0.18f),
+                radius = w * 0.75f
             )
         )
     }

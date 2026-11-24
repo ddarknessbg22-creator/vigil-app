@@ -60,6 +60,9 @@ fun HomeScreen(vm: VigilViewModel) {
 
     var deciding by rememberSaveable { mutableStateOf<Boolean?>(null) }
     val c = LocalContext.current
+    val opensAt = String.format("%02d:%02d", o.minute / 60, o.minute % 60)
+    val windowOpen = time.hour > o.minute / 60 ||
+        (time.hour == o.minute / 60 && time.minute >= o.minute % 60)
 
     Page("Today", "V I G I L   /   Days clean · ${today.format(DateTimeFormatter.ofPattern("EEE, d MMM"))}") {
         Text(
@@ -77,7 +80,7 @@ fun HomeScreen(vm: VigilViewModel) {
             onSetStart = { pickStart(c, vm::start) }
         )
 
-        TodayDecision(check) { deciding = it }
+        TodayDecision(check, windowOpen, opensAt) { deciding = it }
 
         q?.let { QuoteCard(it, if (time.hour in 5..17) "Morning note" else "Evening note") }
     }
@@ -293,61 +296,164 @@ private fun CleanCard(
 }
 
 @Composable
-private fun TodayDecision(check: Entry?, onDecide: (Boolean) -> Unit) {
+private fun TodayDecision(
+    check: Entry?,
+    windowOpen: Boolean,
+    opensAt: String,
+    onDecide: (Boolean) -> Unit
+) {
     Surface(
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(Modifier.fillMaxWidth().padding(18.dp)) {
-            Text(
-                "Today’s decision",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                when {
-                    check == null -> "Be honest with yourself. Either answer moves you forward."
-                    check.setback -> "Logged as a setback. You can change it if that was wrong."
-                    else -> "Logged clean. You can change it if that was wrong."
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(Modifier.height(14.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(
-                    onClick = { onDecide(true) },
-                    modifier = Modifier.weight(1f).heightIn(min = 50.dp),
-                    shape = RoundedCornerShape(25.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = Color.White
+        when {
+            check != null -> {
+                Column(Modifier.fillMaxWidth().padding(18.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            Modifier.size(36.dp).clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    if (check.setback) MaterialTheme.colorScheme.error.copy(alpha = 0.16f)
+                                    else MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                if (check.setback) "↻" else "✓",
+                                color = if (check.setback) MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text("Today is logged", style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                if (check.setback) "A new start — nothing to fix."
+                                else "You passed today. Well done.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "One decision a day. Come back tomorrow.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                ) { Text("I passed today", style = MaterialTheme.typography.labelLarge) }
-
-                OutlinedButton(
-                    onClick = { onDecide(false) },
-                    modifier = Modifier.weight(1f).heightIn(min = 50.dp),
-                    shape = RoundedCornerShape(25.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    ),
-                    border = ButtonDefaults.outlinedButtonBorder.copy(
-                        width = 1.dp,
-                        brush = androidx.compose.ui.graphics.SolidColor(
-                            MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
-                        )
-                    )
-                ) { Text("I had a setback", style = MaterialTheme.typography.labelLarge) }
+                }
             }
-            Text(
-                "A setback is a new start, not a judgement.",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 10.dp)
+
+            !windowOpen -> {
+                Column(Modifier.fillMaxWidth().padding(18.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            Modifier.size(36.dp).clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                            contentAlignment = Alignment.Center
+                        ) { Text("◷", style = MaterialTheme.typography.titleMedium) }
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text("Check-in opens at $opensAt", style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                "A quiet moment at the end of the day. Until then, just live it.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+
+            else -> DecisionPicker(onDecide)
+        }
+    }
+}
+
+/** MIUI-style segmented decision: two large tiles, one clear confirm action. */
+@Composable
+private fun DecisionPicker(onDecide: (Boolean) -> Unit) {
+    var choice by rememberSaveable { mutableStateOf<Boolean?>(null) }
+    val primary = MaterialTheme.colorScheme.primary
+    val error = MaterialTheme.colorScheme.error
+
+    Column(Modifier.fillMaxWidth().padding(18.dp)) {
+        Text("Today’s decision", style = MaterialTheme.typography.titleSmall)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "Be honest with yourself. One answer, one time.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(14.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            DecisionTile(
+                modifier = Modifier.weight(1f),
+                glyph = "✓",
+                label = "I passed",
+                selected = choice == true,
+                color = primary,
+                onClick = { choice = true }
             )
+            DecisionTile(
+                modifier = Modifier.weight(1f),
+                glyph = "↻",
+                label = "Setback",
+                selected = choice == false,
+                color = error,
+                onClick = { choice = false }
+            )
+        }
+        Spacer(Modifier.height(14.dp))
+        Button(
+            enabled = choice != null,
+            onClick = { choice?.let(onDecide) },
+            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+            shape = RoundedCornerShape(26.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (choice == false) error else primary,
+                contentColor = Color.White,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        ) {
+            Text(
+                if (choice == null) "Choose today’s answer"
+                else if (choice == true) "Confirm — I passed today"
+                else "Confirm — begin again",
+                style = MaterialTheme.typography.labelLarge
+            )
+        }
+    }
+}
+
+@Composable
+private fun DecisionTile(
+    modifier: Modifier,
+    glyph: String,
+    label: String,
+    selected: Boolean,
+    color: Color,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.height(96.dp),
+        shape = RoundedCornerShape(22.dp),
+        color = if (selected) color.copy(alpha = 0.20f)
+        else MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = if (selected) androidx.compose.foundation.BorderStroke(2.dp, color) else null
+    ) {
+        Column(
+            Modifier.fillMaxSize().padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(glyph, style = MaterialTheme.typography.headlineSmall, color = color)
+            Spacer(Modifier.height(4.dp))
+            Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }

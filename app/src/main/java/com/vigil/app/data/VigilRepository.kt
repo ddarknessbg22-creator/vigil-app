@@ -26,7 +26,10 @@ class VigilRepository(private val db:VigilDatabase,val prefs:PreferencesDataStor
     suspend fun markDay(clean:Boolean,note:String="",now:Long=System.currentTimeMillis())=db.withTransaction {
         val date=LocalDate.now()
         val day=date.toString()
-        val entry=dao.entry(day) ?: Entry(day,day,"")
+        // One decision per day. Once recorded it is final — no silent retries
+        // and no changing your answer later from a settings screen.
+        if(dao.entry(day)!=null) return@withTransaction
+        val entry=Entry(day,day,"")
         val text=note.trim().take(4000)
         if(clean){
             val active=dao.latest()

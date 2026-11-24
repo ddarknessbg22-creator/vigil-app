@@ -126,7 +126,7 @@ fun SettingsScreen(vm: VigilViewModel) {
         }
 
         SettingsCard("About", VigilIcons.info) {
-            Text("VIGIL 2.0", style = MaterialTheme.typography.titleSmall)
+            Text("VIGIL ${com.vigil.app.BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.titleSmall)
             Text(
                 "A private journal for staying clean from pornography and gooning. Every day you choose to pass is a day you keep. The clock measures time, not your worth.",
                 style = MaterialTheme.typography.bodySmall,

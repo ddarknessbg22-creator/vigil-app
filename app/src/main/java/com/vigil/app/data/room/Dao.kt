@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
     @Query("SELECT * FROM journal ORDER BY day DESC, id DESC") fun entries():Flow<List<Entry>>
     @Query("SELECT * FROM intentions ORDER BY complete,title") fun goals():Flow<List<Goal>>
     @Query("SELECT * FROM runs ORDER BY start DESC") fun runs():Flow<List<Run>>
+    @Query("SELECT * FROM runs ORDER BY start DESC") suspend fun runsOnce():List<Run>
     @Query("SELECT * FROM reading ORDER BY seen DESC") fun readings():Flow<List<Reading>>
     @Query("SELECT * FROM reading WHERE id=:id") suspend fun reading(id:String):Reading?
     @Query("SELECT * FROM runs ORDER BY start DESC LIMIT 1") suspend fun latest():Run?

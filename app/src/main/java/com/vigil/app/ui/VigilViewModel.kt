@@ -28,7 +28,7 @@ class VigilViewModel(app:Application):AndroidViewModel(app){
     val quotes=flow { emit(Quotes.load(context)) }.flowOn(Dispatchers.IO).stateIn(viewModelScope,SharingStarted.Lazily,emptyList())
     val clock=flow {while(true){val now=System.currentTimeMillis();emit(now);delay(60_000-now%60_000)}}.stateIn(viewModelScope,scope,System.currentTimeMillis())
     val message=MutableSharedFlow<String>(extraBufferCapacity=4)
-    private fun work(success:String?=null,block:suspend ()->Unit){viewModelScope.launch {try {withContext(Dispatchers.IO){block()};success?.let { message.emit(it) }}catch(e:CancellationException){throw e}catch(e:Exception){message.emit(if(e is IllegalArgumentException && !e.message.isNullOrBlank() && e.message!!.length<100) e.message!! else "Could not complete that change. Please try again.")}}}
+    private fun work(success:String?=null,block:suspend ()->Unit){viewModelScope.launch {try {withContext(Dispatchers.IO){block()};StreakWidgetProvider.refresh(getApplication());success?.let { message.emit(it) }}catch(e:CancellationException){throw e}catch(e:Exception){message.emit(if(e is IllegalArgumentException && !e.message.isNullOrBlank() && e.message!!.length<100) e.message!! else "Could not complete that change. Please try again.")}}}
     fun start(at:Long)=work("Your commitment starts here."){repo.start(at)}
     fun restart()=work("Your earlier progress is safe. This is a new beginning."){repo.restart()}
     fun reflect(note:String)=work("Today’s check-in is saved."){repo.reflect(note)}

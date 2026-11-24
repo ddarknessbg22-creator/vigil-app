@@ -32,6 +32,7 @@ import com.vigil.app.ui.progress.ProgressScreen
 import com.vigil.app.ui.settings.SettingsScreen
 import com.vigil.app.ui.theme.VigilIcons
 import com.vigil.app.ui.theme.VigilTheme
+import com.vigil.app.ui.components.themeWave
 
 private data class NavItem(val name: String, val icon: ImageVector)
 
@@ -79,6 +80,7 @@ fun VigilApp(vm: VigilViewModel = viewModel()) {
         }
 
         Scaffold(
+            modifier = Modifier.themeWave(dark.toString()),
             containerColor = MaterialTheme.colorScheme.background,
             snackbarHost = { SnackbarHost(snackbar, modifier = Modifier.padding(bottom = 12.dp)) },
             bottomBar = { VigilNavBar(current = tab, onSelect = { tab = it }) }

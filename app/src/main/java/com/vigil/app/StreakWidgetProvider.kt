@@ -65,10 +65,8 @@ class StreakWidgetProvider : AppWidgetProvider() {
 
                     val views = RemoteViews(context.packageName, R.layout.widget_streak).apply {
                         setTextViewText(R.id.widget_number, days.toString())
-                        setTextViewText(
-                            R.id.widget_label,
-                            if (days == 1L) "day clean · best $best" else "days clean · best $best"
-                        )
+                        setTextViewText(R.id.widget_label, if (days == 1L) "day clean" else "days clean")
+                        setTextViewText(R.id.widget_best, "best $best")
                         setOnClickPendingIntent(R.id.widget_root, open)
                     }
                     manager.updateAppWidget(ids, views)

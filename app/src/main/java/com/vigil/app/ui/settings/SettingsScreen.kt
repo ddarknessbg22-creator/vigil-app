@@ -7,8 +7,11 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +32,7 @@ import com.vigil.app.BuildConfig
 import com.vigil.app.data.datastore.Options
 import com.vigil.app.ui.VigilViewModel
 import com.vigil.app.ui.components.*
+import com.vigil.app.ui.components.IosSwitch
 import com.vigil.app.ui.theme.VigilIcons
 import java.time.LocalTime
 
@@ -162,7 +166,7 @@ fun SettingsScreen(vm: VigilViewModel) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                ActionRow("Change starting date") { sheet = ""; pickStart(context, vm::start) }
+                ChangeStartDateRow(context, vm, onDone = { sheet = "" })
             }
 
             "category" -> {
@@ -199,6 +203,76 @@ private fun sheetTitle(key: String) = when (key) {
 
 private fun showTimePicker(c: android.content.Context, o: Options, onTime: (Int) -> Unit) {
     TimePickerDialog(c, { _, h, m -> onTime(h * 60 + m) }, o.minute / 60, o.minute % 60, true).show()
+}
+
+/**
+ * Changing the start date is deliberately harder than a single tap:
+ * you must hold the button for 2 seconds before the date picker opens.
+ */
+@Composable
+private fun ChangeStartDateRow(
+    context: android.content.Context,
+    vm: VigilViewModel,
+    onDone: () -> Unit
+) {
+    var confirming by remember { mutableStateOf(false) }
+    var ready by remember { mutableStateOf(false) }
+
+    if (!confirming) {
+        ActionRow("Change starting date") { confirming = true }
+        return
+    }
+
+    Surface(
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.error.copy(alpha = 0.12f),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                "This restarts your clean run from the date you choose. Past days stay in your journal, but the counter begins again. Are you sure?",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.22f))
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onPress = {
+                                val start = System.currentTimeMillis()
+                                val released = tryAwaitRelease()
+                                if (released && System.currentTimeMillis() - start >= 2000) {
+                                    ready = true
+                                }
+                            }
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    if (ready) "Ready — choose a new date" else "Hold for 2 seconds to continue",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                TextButton(onClick = { confirming = false; ready = false }) { Text("Cancel") }
+                Button(
+                    enabled = ready,
+                    onClick = {
+                        onDone()
+                        confirming = false
+                        ready = false
+                        pickStart(context, vm::start)
+                    }
+                ) { Text("Continue") }
+            }
+        }
+    }
 }
 
 @Composable
@@ -259,16 +333,10 @@ private fun SwitchRow(
             Text(detail, style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(
+        IosSwitch(
             checked = checked,
             onCheckedChange = onCheckedChange,
-            enabled = enabled,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = MaterialTheme.colorScheme.primary,
-                uncheckedThumbColor = Color.White,
-                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-            )
+            enabled = enabled
         )
     }
 }

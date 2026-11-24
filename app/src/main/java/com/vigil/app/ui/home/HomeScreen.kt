@@ -28,6 +28,7 @@ import com.vigil.app.domain.StreakVoice
 import com.vigil.app.data.room.Entry
 import com.vigil.app.ui.VigilViewModel
 import com.vigil.app.ui.components.Page
+import com.vigil.app.ui.components.livingGradient
 import com.vigil.app.ui.components.QuoteCard
 import com.vigil.app.ui.components.Sheet
 import com.vigil.app.ui.components.pickStart
@@ -172,10 +173,11 @@ private fun CleanCard(
     }
     val labels = listOf("M", "T", "W", "T", "F", "S", "S")
 
-    Surface(
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.fillMaxWidth()
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(28.dp))
+            .livingGradient()
     ) {
         Column(Modifier.fillMaxWidth().padding(20.dp)) {
             Row(
@@ -186,32 +188,32 @@ private fun CleanCard(
                     modifier = Modifier
                         .size(36.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)),
+                        .background(Color.White.copy(alpha = 0.16f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("✓", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                    Text("✓", style = MaterialTheme.typography.titleMedium, color = Color.White)
                 }
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(
                         "Days clean",
                         style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = Color.White
                     )
                     Text(
                         "without pornography or gooning",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.72f)
                     )
                 }
                 Surface(
                     shape = RoundedCornerShape(50),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh
+                    color = Color.White.copy(alpha = 0.14f)
                 ) {
                     Text(
                         "Best $best",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = Color.White,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                     )
                 }
@@ -224,7 +226,7 @@ private fun CleanCard(
                     if (run == null) "—" else shown.toString(),
                     style = VigilText.heroNumber.copy(
                         brush = Brush.linearGradient(
-                            listOf(MaterialTheme.colorScheme.primary, Color(0xFF7FC4FF))
+                            listOf(Color.White, Color(0xFFB8DBFF))
                         )
                     )
                 )
@@ -232,7 +234,7 @@ private fun CleanCard(
                 Text(
                     if (days == 1L) "day" else "days",
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.82f),
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
             }
@@ -241,7 +243,7 @@ private fun CleanCard(
                 text = if (run == null) "Every clean run starts somewhere. Choose your beginning."
                 else StreakVoice.forDay(days, best, comebackCount, firstEverPass, justReturned && days > 1L),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color.White.copy(alpha = 0.82f)
             )
 
             Spacer(Modifier.height(18.dp))
@@ -254,8 +256,8 @@ private fun CleanCard(
                         Text(
                             labels[(date.dayOfWeek.value - 1) % 7],
                             style = MaterialTheme.typography.labelSmall,
-                            color = if (isToday) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (isToday) Color(0xFF8CC4FF)
+                            else Color.White.copy(alpha = 0.6f)
                         )
                         Spacer(Modifier.height(6.dp))
                         Box(
@@ -264,10 +266,10 @@ private fun CleanCard(
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(
                                     when {
-                                        marked -> MaterialTheme.colorScheme.primary
-                                        isToday -> MaterialTheme.colorScheme.primary.copy(alpha = 0.22f)
+                                        marked -> Color(0xFF4C9DFF)
+                                        isToday -> Color.White.copy(alpha = 0.28f)
                                         date.isAfter(today) -> Color.Transparent
-                                        else -> MaterialTheme.colorScheme.surfaceContainerHighest
+                                        else -> Color.White.copy(alpha = 0.14f)
                                     }
                                 )
                         )
@@ -280,25 +282,25 @@ private fun CleanCard(
                 Text(
                     "Next marker · $nextMilestone days",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.White.copy(alpha = 0.72f)
                 )
                 Text(
                     "${(progress * 100).toInt()}%",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
+                    color = Color(0xFF8CC4FF)
                 )
             }
             Spacer(Modifier.height(8.dp))
             Box(
                 modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(50))
-                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                    .background(Color.White.copy(alpha = 0.16f))
             ) {
                 Box(
                     modifier = Modifier.fillMaxWidth(animatedProgress).height(8.dp)
                         .clip(RoundedCornerShape(50))
                         .background(
                             Brush.horizontalGradient(
-                                listOf(MaterialTheme.colorScheme.primary, Color(0xFF7FC4FF))
+                                listOf(Color(0xFF4C9DFF), Color(0xFFB8DBFF))
                             )
                         )
                 )
@@ -306,7 +308,8 @@ private fun CleanCard(
 
             if (run == null) {
                 Spacer(Modifier.height(14.dp))
-                TextButton(onClick = onSetStart, modifier = Modifier.align(Alignment.End)) {
+                TextButton(onClick = onSetStart, modifier = Modifier.align(Alignment.End),
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF8CC4FF))) {
                     Text("Set my start date")
                 }
             }

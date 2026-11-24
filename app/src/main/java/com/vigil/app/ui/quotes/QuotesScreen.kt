@@ -60,7 +60,7 @@ fun QuotesScreen(vm: VigilViewModel) {
                         modifier = Modifier.padding(vertical = 12.dp)
                     )
                     Text(
-                        "VIGIL original  ·  ${it.category}",
+                        "${it.source.ifBlank { "VIGIL original" }}  ·  ${it.category}",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -85,7 +85,7 @@ fun QuotesScreen(vm: VigilViewModel) {
                             c.startActivity(
                                 Intent.createChooser(
                                     Intent(Intent.ACTION_SEND).setType("text/plain")
-                                        .putExtra(Intent.EXTRA_TEXT, "“${it.text}” — VIGIL original"),
+                                        .putExtra(Intent.EXTRA_TEXT, "“${it.text}” — ${it.source.ifBlank { "VIGIL original" }}"),
                                     "Share quote"
                                 )
                             )

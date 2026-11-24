@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,6 +42,7 @@ fun ProgressScreen(vm: VigilViewModel) {
     val daySet = remember(entries) { entries.map { it.day }.toSet() }
     val setbackSet = remember(entries) { entries.filter { it.setback }.map { it.day }.toSet() }
     var sheet by rememberSaveable { mutableStateOf("") }
+    val reached = milestones.filter { best >= it }
 
     Page("Progress", "V I G I L    /    Your journal") {
         Kicker("Clean days")
@@ -142,7 +144,6 @@ fun ProgressScreen(vm: VigilViewModel) {
             }
         }
 
-        val reached = milestones.filter { best >= it }
         Surface(
             shape = RoundedCornerShape(24.dp),
             color = MaterialTheme.colorScheme.surfaceContainer,

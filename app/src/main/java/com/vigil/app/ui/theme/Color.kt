@@ -9,29 +9,29 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 /**
- * MIUI / HyperOS-inspired palette.
+ * Premium, iOS-inspired palette.
  *
- * Page and card are deliberately close in value: the separation comes from a
- * small step in lightness and a large corner radius, not from outlines or
- * shadows — the way Xiaomi's settings and notes surfaces are built.
+ * Neutral layered surfaces, one electric accent, no tonal colour casts.
+ * rounded grouped cards, hairline separators and restrained highlights do
+ * the work that gradients used to.
  */
 object VigilPalette {
-    val IcyCyan = Color(0xFF9CC8FF)
-    val ElectricBlue = Color(0xFF3B82F6)
-    val CoolWhite = Color(0xFFF2F4F8)
+    val IcyCyan = Color(0xFF0A84FF)
+    val ElectricBlue = Color(0xFF0A84FF)
+    val CoolWhite = Color(0xFFF2F2F7)
 
-    val DeepBlack = Color(0xFF0B0B0E)
-    val Graphite = Color(0xFF0F0F12)
-    val Charcoal = Color(0xFF1C1C21)
-    val Elevated = Color(0xFF24242A)
+    val DeepBlack = Color(0xFF000000)
+    val Graphite = Color(0xFF000000)
+    val Charcoal = Color(0xFF1C1C1E)
+    val Elevated = Color(0xFF2C2C2E)
 
-    val Success = Color(0xFF4CD6A0)
-    val Warning = Color(0xFFFFB020)
-    val Danger = Color(0xFFFF6B6B)
+    val Success = Color(0xFF30D158)
+    val Warning = Color(0xFFFF9F0A)
+    val Danger = Color(0xFFFF453A)
 
-    val TextPrimary = Color(0xFFF5F6F8)
-    val TextSecondary = Color(0xFFA0A2AC)
-    val TextTertiary = Color(0xFF6E707A)
+    val TextPrimary = Color(0xFFFFFFFF)
+    val TextSecondary = Color(0xFF98989F)
+    val TextTertiary = Color(0xFF6E6E73)
 }
 
 data class GlassTokens(
@@ -56,57 +56,57 @@ val LocalGlassTokens = staticCompositionLocalOf {
     )
 }
 
-/** When false, surfaces render flat instead of layered glass. */
 val LocalGlassEnabled = staticCompositionLocalOf { true }
 
 val DarkScheme = darkColorScheme(
-    primary = Color(0xFF4C8DFF),
+    primary = Color(0xFF0A84FF),
     onPrimary = Color.White,
-    primaryContainer = Color(0xFF1B3A6B),
-    onPrimaryContainer = Color(0xFFD9E7FF),
-    secondary = Color(0xFFFF9A4D),
-    onSecondary = Color(0xFF2B1300),
-    tertiary = Color(0xFF4CD6A0),
-    onTertiary = Color(0xFF00241A),
-    background = VigilPalette.Graphite,
-    onBackground = VigilPalette.TextPrimary,
-    surface = VigilPalette.Graphite,
-    onSurface = VigilPalette.TextPrimary,
+    primaryContainer = Color(0xFF1C3A5E),
+    onPrimaryContainer = Color(0xFFD6E9FF),
+    secondary = Color(0xFFFF9F0A),
+    onSecondary = Color(0xFF2B1600),
+    tertiary = Color(0xFF30D158),
+    onTertiary = Color(0xFF00220C),
+    background = VigilPalette.DeepBlack,
+    onBackground = Color.White,
+    surface = VigilPalette.DeepBlack,
+    onSurface = Color.White,
     surfaceVariant = VigilPalette.Charcoal,
     onSurfaceVariant = VigilPalette.TextSecondary,
-    surfaceContainerLowest = VigilPalette.DeepBlack,
-    surfaceContainerLow = VigilPalette.Graphite,
+    surfaceContainerLowest = Color(0xFF0A0A0A),
+    surfaceContainerLow = Color(0xFF141416),
     surfaceContainer = VigilPalette.Charcoal,
     surfaceContainerHigh = VigilPalette.Elevated,
-    surfaceContainerHighest = Color(0xFF2E2E35),
-    outline = Color(0xFF3A3A42),
-    outlineVariant = Color(0xFF2A2A31),
+    surfaceContainerHighest = Color(0xFF3A3A3C),
+    outline = Color(0xFF38383A),
+    outlineVariant = Color(0xFF2C2C2E),
     error = VigilPalette.Danger,
     onError = Color(0xFF2B0000)
 )
 
 val LightScheme = lightColorScheme(
-    primary = Color(0xFF0A59F7),
+    primary = Color(0xFF007AFF),
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFDBE7FF),
-    onPrimaryContainer = Color(0xFF001B44),
-    secondary = Color(0xFFE86A18),
+    primaryContainer = Color(0xFFDCEBFF),
+    onPrimaryContainer = Color(0xFF001E44),
+    secondary = Color(0xFFFF9500),
     onSecondary = Color.White,
-    tertiary = Color(0xFF0F8A62),
-    background = Color(0xFFF2F3F7),
-    onBackground = Color(0xFF14151A),
-    surface = Color(0xFFF2F3F7),
-    onSurface = Color(0xFF14151A),
-    surfaceVariant = Color(0xFFE7E9EE),
-    onSurfaceVariant = Color(0xFF666973),
+    tertiary = Color(0xFF34C759),
+    onTertiary = Color.White,
+    background = Color(0xFFF2F2F7),
+    onBackground = Color(0xFF1C1C1E),
+    surface = Color.White,
+    onSurface = Color(0xFF1C1C1E),
+    surfaceVariant = Color(0xFFF2F2F7),
+    onSurfaceVariant = Color(0xFF6E6E73),
     surfaceContainerLowest = Color.White,
-    surfaceContainerLow = Color(0xFFFAFAFC),
+    surfaceContainerLow = Color(0xFFF9F9FB),
     surfaceContainer = Color.White,
-    surfaceContainerHigh = Color(0xFFF7F8FA),
-    surfaceContainerHighest = Color(0xFFEFF0F4),
-    outline = Color(0xFFC8CBD2),
-    outlineVariant = Color(0xFFE2E4E9),
-    error = Color(0xFFD93636),
+    surfaceContainerHigh = Color(0xFFF2F2F7),
+    surfaceContainerHighest = Color(0xFFE5E5EA),
+    outline = Color(0xFFC7C7CC),
+    outlineVariant = Color(0xFFE5E5EA),
+    error = Color(0xFFFF3B30),
     onError = Color.White
 )
 
@@ -118,23 +118,23 @@ fun VigilTheme(
     val scheme = if (darkTheme) DarkScheme else LightScheme
     val tokens = if (darkTheme) {
         GlassTokens(
-            surfaceTint = Color.White.copy(alpha = 0.075f),
-            surfaceTintStrong = Color.White.copy(alpha = 0.13f),
-            borderTop = Color.White.copy(alpha = 0.24f),
-            borderBottom = Color.White.copy(alpha = 0.04f),
-            innerGlow = Color.White.copy(alpha = 0.12f),
-            shadow = Color.Black.copy(alpha = 0.6f),
-            scrim = Color.Black.copy(alpha = 0.4f)
+            surfaceTint = Color.White.copy(alpha = 0.05f),
+            surfaceTintStrong = Color.White.copy(alpha = 0.09f),
+            borderTop = Color.White.copy(alpha = 0.14f),
+            borderBottom = Color.White.copy(alpha = 0.03f),
+            innerGlow = Color.White.copy(alpha = 0.08f),
+            shadow = Color.Black.copy(alpha = 0.5f),
+            scrim = Color.Black.copy(alpha = 0.35f)
         )
     } else {
         GlassTokens(
-            surfaceTint = Color.White.copy(alpha = 0.55f),
-            surfaceTintStrong = Color.White.copy(alpha = 0.75f),
-            borderTop = Color.White.copy(alpha = 0.95f),
-            borderBottom = Color(0xFF9FB0BD).copy(alpha = 0.35f),
-            innerGlow = Color.White.copy(alpha = 0.8f),
-            shadow = Color(0xFF54636F).copy(alpha = 0.22f),
-            scrim = Color.White.copy(alpha = 0.55f)
+            surfaceTint = Color.White.copy(alpha = 0.6f),
+            surfaceTintStrong = Color.White.copy(alpha = 0.8f),
+            borderTop = Color.White.copy(alpha = 0.9f),
+            borderBottom = Color(0xFFC7C7CC).copy(alpha = 0.3f),
+            innerGlow = Color.White.copy(alpha = 0.7f),
+            shadow = Color(0xFF3C3C43).copy(alpha = 0.14f),
+            scrim = Color.White.copy(alpha = 0.5f)
         )
     }
     androidx.compose.runtime.CompositionLocalProvider(LocalGlassTokens provides tokens) {

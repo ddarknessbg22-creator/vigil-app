@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vigil.app.ui.VigilViewModel
 import com.vigil.app.ui.components.*
@@ -138,7 +139,7 @@ fun SettingsScreen(vm: VigilViewModel) {
 
             "Quote preference" -> {
                 (listOf("Any") + all.map { it.category }.distinct()).forEach { name ->
-                    ActionRow(name, if (it == o.category) "Selected" else "") {
+                    ActionRow(name, if (name == o.category) "Selected" else "") {
                         vm.category(name); sheet = ""
                     }
                 }

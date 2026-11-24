@@ -79,10 +79,11 @@ fun VigilApp(vm: VigilViewModel = viewModel()) {
 @Composable
 private fun VigilNavBar(current: String, onSelect: (String) -> Unit) {
     Surface(
-        color = MaterialTheme.colorScheme.surfaceContainer,
+        color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.94f),
         tonalElevation = 0.dp,
-        shadowElevation = 8.dp
+        shadowElevation = 0.dp
     ) {
+        Box(Modifier.fillMaxWidth().height(1.dp).background(MaterialTheme.colorScheme.outlineVariant))
         Row(
             Modifier
                 .fillMaxWidth()

@@ -72,8 +72,8 @@ object StreakVoice {
     ): String = when {
         firstEverPass -> firstPass[comebackCount.coerceAtLeast(0) % firstPass.size]
         justReturned -> comebacks[comebackCount.coerceAtLeast(0) % comebacks.size]
-        days in 1L..30L -> days[(days - 1).toInt()]
-        days > 30L -> later[(days % later.size).toInt()]
+        days in 1L..30L -> days.get((days - 1).toInt())
+        days > 30L -> later.get((days % later.size).toInt())
         else -> "Today is day one. It counts."
     }
 

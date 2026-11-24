@@ -42,7 +42,10 @@ fun Page(
     val density = LocalDensity.current
     val collapseAt = with(density) { 44.dp.toPx() }
     val range = with(density) { 52.dp.toPx() }
-    val collapse = ((scroll.value - collapseAt) / range).coerceIn(0f, 1f)
+    // Do NOT read scroll.value here. Reading it in composition makes every
+    // scroll frame recompose the whole page. The lambda below runs in the
+    // draw phase, so scrolling stays at display refresh rate.
+    val scrollForDraw = scroll
 
     // One-shot entrance, applied once per composition rather than per frame.
     var shown by remember { mutableStateOf(false) }
@@ -64,6 +67,7 @@ fun Page(
             Spacer(Modifier.height(40.dp))
             Column(
                 Modifier.graphicsLayer {
+                    val collapse = ((scrollForDraw.value - collapseAt) / range).coerceIn(0f, 1f)
                     alpha = 1f - collapse
                     translationY = -collapse * 18f
                 },
@@ -92,7 +96,9 @@ fun Page(
             Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .graphicsLayer { alpha = collapse }
+                .graphicsLayer {
+                    alpha = ((scrollForDraw.value - collapseAt) / range).coerceIn(0f, 1f)
+                }
                 .background(MaterialTheme.colorScheme.background.copy(alpha = 0.94f)),
             contentAlignment = Alignment.CenterStart
         ) {

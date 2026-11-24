@@ -97,7 +97,7 @@ fun SettingsScreen(vm: VigilViewModel) {
             }
             SwitchRow(
                 title = "Quote in reminder",
-                detail = "Include a short line from the reading room",
+                detail = "A short clean-days line with the reminder",
                 checked = o.quoteNotice,
                 enabled = o.reminder,
                 onCheckedChange = { vm.notifications(o.reminder, o.minute, it) }

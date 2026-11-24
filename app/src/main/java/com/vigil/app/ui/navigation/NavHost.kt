@@ -50,8 +50,33 @@ fun VigilApp(vm: VigilViewModel = viewModel()) {
         // fade/slide work on every tap. Tab switches are immediate.
         var tab by rememberSaveable { mutableStateOf("Home") }
         val snackbar = remember { SnackbarHostState() }
+        val update by vm.update.collectAsStateWithLifecycle()
 
+        LaunchedEffect(Unit) { vm.checkUpdate() }
         LaunchedEffect(vm) { vm.message.collect { snackbar.showSnackbar(it) } }
+
+        if (update != null) {
+            AlertDialog(
+                onDismissRequest = { vm.skipUpdate() },
+                title = { Text("Update available") },
+                text = {
+                    Column {
+                        Text("VIGIL ${update.version} is ready.", style = MaterialTheme.typography.bodyMedium)
+                        if (update.notes.isNotBlank()) {
+                            Spacer(Modifier.height(8.dp))
+                            Text(update.notes, style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { vm.downloadAndInstall(update) }) { Text("Download & install") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { vm.skipUpdate() }) { Text("Not now") }
+                }
+            )
+        }
 
         Scaffold(
             snackbarHost = {

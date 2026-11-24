@@ -1,6 +1,8 @@
 package com.vigil.app.ui
 
 import android.app.Application
+import com.vigil.app.data.AppUpdate
+import com.vigil.app.data.UpdateChecker
 import android.net.Uri
 import androidx.lifecycle.*
 import com.vigil.app.*
@@ -14,6 +16,9 @@ import java.io.ByteArrayOutputStream
 class VigilViewModel(app:Application):AndroidViewModel(app){
     private val context=VigilApplication.from(app)
     private val repo=context.repository
+    private val updater=UpdateChecker(context)
+    private val _update=MutableStateFlow<AppUpdate?>(null)
+    val update:StateFlow<AppUpdate?>=_update.asStateFlow()
     private val scope=SharingStarted.WhileSubscribed(0)
     val options=repo.prefs.options.stateIn(viewModelScope,scope,Options())
     val entries=repo.dao.entries().stateIn(viewModelScope,scope,emptyList())
@@ -27,6 +32,17 @@ class VigilViewModel(app:Application):AndroidViewModel(app){
     fun start(at:Long)=work("Your commitment starts here."){repo.start(at)}
     fun restart()=work("Your earlier progress is safe. This is a new beginning."){repo.restart()}
     fun reflect(note:String)=work("Today’s check-in is saved."){repo.reflect(note)}
+    fun checkUpdate()=viewModelScope.launch(Dispatchers.IO) {
+        _update.value=updater.latest()
+    }
+    fun skipUpdate(){_update.value=null}
+    fun downloadAndInstall(update:AppUpdate)=viewModelScope.launch {
+        try {
+            withContext(Dispatchers.IO){ updater.download(update.url) }.let { file ->
+                getApplication<Application>().startActivity(updater.installIntent(file))
+            }
+        } catch(e:Exception){ message.emit("Could not download the update. Check your connection.") }
+    }
     fun checkIn(clean:Boolean,note:String,message:String?=null)=work(
         message ?: if(clean) "Today is logged clean." else "Setback saved. This is a new start."
     ){repo.markDay(clean,note)}

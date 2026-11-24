@@ -7,7 +7,7 @@ package com.vigil.app.domain
 object StreakVoice {
 
     /** One line for each of the first 30 clean days. */
-    private val days = listOf(
+    private val dayLines = listOf(
         "Day one. You chose today.",
         "Two days. A pattern is already forming.",
         "Three days. The first stretch is real now.",
@@ -72,7 +72,7 @@ object StreakVoice {
     ): String = when {
         firstEverPass -> firstPass[comebackCount.coerceAtLeast(0) % firstPass.size]
         justReturned -> comebacks[comebackCount.coerceAtLeast(0) % comebacks.size]
-        days in 1L..30L -> days.get((days - 1).toInt())
+        days in 1L..30L -> dayLines[(days - 1).toInt()]
         days > 30L -> later.get((days % later.size).toInt())
         else -> "Today is day one. It counts."
     }

@@ -37,7 +37,7 @@ class UpdateChecker(private val context: Context) {
 
     private val json = Json { ignoreUnknownKeys = true }
     private val repoOwner = "ddarknessbg22-creator"
-    private val repoName = "vigil-clean-days"
+    private val repoName = "vigil-app"
 
     suspend fun latest(): AppUpdate? = withContext(Dispatchers.IO) {
         runCatching {

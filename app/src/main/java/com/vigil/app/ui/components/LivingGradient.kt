@@ -7,6 +7,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -44,14 +45,14 @@ fun Modifier.livingGradient(
         drawRect(
             brush = Brush.linearGradient(
                 colors = base,
-                start = Offset(-size.width * (0.25f + drift * 0.5f), 0f),
-                end = Offset(size.width * (1.25f - drift * 0.35f), size.height)
+                start = Offset(x = -size.width * (0.25f + drift * 0.5f), y = 0f),
+                end = Offset(x = size.width * (1.25f - drift * 0.35f), y = size.height)
             )
         )
         drawRect(
             brush = Brush.radialGradient(
                 colors = listOf(glow.copy(alpha = 0.20f), Color.Transparent),
-                center = Offset(size.width * (0.15f + drift * 0.7f), size.height * 0.18f),
+                center = Offset(x = size.width * (0.15f + drift * 0.7f), y = size.height * 0.18f),
                 radius = size.width * 0.75f
             )
         )

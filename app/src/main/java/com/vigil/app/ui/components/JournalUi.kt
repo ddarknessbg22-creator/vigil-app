@@ -91,7 +91,7 @@ fun Page(
                 .graphicsLayer {
                     alpha = ((scrollForDraw.value - collapseAt) / range).coerceIn(0f, 1f)
                 }
-                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.94f)),
+                .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.CenterStart
         ) {
             Box(

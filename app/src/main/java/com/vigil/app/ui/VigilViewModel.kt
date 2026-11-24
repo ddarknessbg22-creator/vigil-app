@@ -27,6 +27,9 @@ class VigilViewModel(app:Application):AndroidViewModel(app){
     fun start(at:Long)=work("Your commitment starts here."){repo.start(at)}
     fun restart()=work("Your earlier progress is safe. This is a new beginning."){repo.restart()}
     fun reflect(note:String)=work("Today’s check-in is saved."){repo.reflect(note)}
+    fun checkIn(clean:Boolean,note:String,message:String?=null)=work(
+        message ?: if(clean) "Today is logged clean." else "Setback saved. This is a new start."
+    ){repo.markDay(clean,note)}
     fun goal(title:String)=work {repo.goal(title)}
     fun complete(g:Goal)=work {repo.dao.save(g.copy(complete=!g.complete))}
     fun seen(id:String)=work {repo.read(id)}

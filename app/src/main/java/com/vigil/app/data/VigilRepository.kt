@@ -22,6 +22,33 @@ class VigilRepository(private val db:VigilDatabase,val prefs:PreferencesDataStor
         dao.save(active.copy(end=now));dao.save(Run(now));val day=LocalDate.now().toString();val entry=dao.entry(day)?:Entry(day,day,"");dao.save(entry.copy(setback=true))
     }
     suspend fun reflect(note:String)=db.withTransaction { val day=LocalDate.now().toString();val entry=dao.entry(day)?:Entry(day,day,"");dao.save(entry.copy(note=note.trim().take(4000))) }
+    /** Records today's outcome. A setback closes the current clean run and begins a new one. */
+    suspend fun markDay(clean:Boolean,note:String="",now:Long=System.currentTimeMillis())=db.withTransaction {
+        val date=LocalDate.now()
+        val day=date.toString()
+        val entry=dao.entry(day) ?: Entry(day,day,"")
+        val text=note.trim().take(4000)
+        if(clean){
+            val active=dao.latest()
+            if(active==null || active.end!=null){
+                val startOfDay=date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                val lastEnd=dao.runs().first().maxOfOrNull { it.end ?: 0L } ?: 0L
+                val at=maxOf(startOfDay,lastEnd).coerceAtMost(now)
+                dao.save(Run(at))
+            }
+            dao.save(entry.copy(note=text,setback=false,mood=5))
+        }else{
+            val active=dao.latest()
+            if(active!=null && active.end==null && now>active.start){
+                val startedToday=Instant.ofEpochMilli(active.start).atZone(ZoneId.systemDefault()).toLocalDate()==date
+                if(!startedToday){
+                    dao.save(active.copy(end=now))
+                    dao.save(Run(now))
+                }
+            }
+            dao.save(entry.copy(note=text,setback=true,mood=1))
+        }
+    }
     suspend fun goal(title:String){require(title.isNotBlank());dao.save(Goal(UUID.randomUUID().toString(),title.trim().take(200)))}
     suspend fun read(id:String,toggle:Boolean=false)=db.withTransaction {val old=dao.reading(id);dao.save(Reading(id,System.currentTimeMillis(),if(toggle) old?.saved!=true else old?.saved==true))}
     suspend fun export():String=db.withTransaction {val o=prefs.options.first();Json.encodeToString(Archive(2,dao.entries().first(),dao.goals().first(),dao.runs().first(),dao.readings().first(),o.theme,o.category))}

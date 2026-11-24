@@ -1,42 +1,31 @@
 package com.vigil.app.ui.components
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 /**
- * iOS-style switch. Both tap and drag work.
- *
- * A `dragging` guard stops the parent's state update from fighting the drag;
- * when not dragging, the thumb always follows the `checked` value.
+ * iOS-style switch — simple tap, clean spring. No drag interaction.
  */
 @Composable
 fun IosSwitch(
@@ -46,95 +35,39 @@ fun IosSwitch(
     enabled: Boolean = true,
     activeColor: Color = Color(0xFF34C759)
 ) {
-    val density = LocalDensity.current
     val haptic = LocalHapticFeedback.current
-    val scope = rememberCoroutineScope()
-
-    val trackW = 51.dp
-    val trackH = 31.dp
-    val thumbD = 27.dp
-    val inset = 2.dp
-
-    val progress = remember { Animatable(if (checked) 1f else 0f) }
-    var dragging by remember { mutableStateOf(false) }
-
-    // Sync thumb to the real value whenever the parent changes it — but not
-    // while the user's finger owns the thumb.
-    LaunchedEffect(checked) {
-        if (!dragging) {
-            progress.animateTo(
-                if (checked) 1f else 0f,
-                spring(dampingRatio = 0.86f, stiffness = 420f)
-            )
-        }
-    }
-
-    val trackColor by animateColorAsState(
+    val track by animateColorAsState(
         if (checked) activeColor else Color(0xFF39393D),
-        tween(180), label = "track"
+        tween(220), label = "track"
+    )
+    val thumbOffset by animateDpAsState(
+        targetValue = if (checked) 20.dp else 0.dp,
+        animationSpec = spring(dampingRatio = 0.8f, stiffness = 420f),
+        label = "thumb"
     )
 
     Box(
         modifier = modifier
-            .width(trackW)
-            .height(trackH)
+            .width(51.dp)
+            .height(31.dp)
             .clip(RoundedCornerShape(50))
-            .background(trackColor)
+            .background(track)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 enabled = enabled
             ) {
-                val next = !checked
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                // Let the parent state drive the thumb — if the change is
-                // rejected, it must spring back instead of staying half-on.
-                onCheckedChange(next)
-            }
-            .pointerInput(enabled) {
-                val thumbPx = with(density) { thumbD.toPx() }
-                val insetPx = with(density) { inset.toPx() }
-                val travel = (size.width - thumbPx - insetPx * 2).coerceAtLeast(1f)
-
-                detectHorizontalDragGestures(
-                    onDragStart = { dragging = true },
-                    onHorizontalDrag = { _, dx ->
-                        scope.launch {
-                            progress.snapTo((progress.value + dx / travel).coerceIn(0f, 1f))
-                        }
-                    },
-                    onDragEnd = {
-                        val next = progress.value >= 0.5f
-                        dragging = false
-                        if (next != checked) {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onCheckedChange(next)
-                        } else {
-                            // rejected — snap back to the real state
-                            scope.launch {
-                                progress.animateTo(
-                                    if (checked) 1f else 0f,
-                                    spring(dampingRatio = 0.86f, stiffness = 420f)
-                                )
-                            }
-                        }
-                    }
-                )
-            }
+                onCheckedChange(!checked)
+            },
+        contentAlignment = Alignment.CenterStart
     ) {
-        val thumbPx = with(density) { thumbD.toPx() }
-        val insetPx = with(density) { inset.toPx() }
-        val travel = with(density) { trackW.toPx() } - thumbPx - insetPx * 2
         Box(
             Modifier
-                .offset {
-                    IntOffset(
-                        (insetPx + travel * progress.value).roundToInt(),
-                        insetPx.roundToInt()
-                    )
-                }
-                .width(thumbD)
-                .height(thumbD)
+                .offset(x = thumbOffset)
+                .padding(start = 2.dp)
+                .width(27.dp)
+                .height(27.dp)
                 .clip(RoundedCornerShape(50))
                 .background(Color.White)
         )

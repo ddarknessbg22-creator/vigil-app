@@ -33,7 +33,6 @@ import com.vigil.app.data.datastore.Options
 import com.vigil.app.ui.VigilViewModel
 import com.vigil.app.ui.components.*
 import com.vigil.app.ui.components.IosSwitch
-import com.vigil.app.ui.components.SlideToConfirm
 import com.vigil.app.ui.theme.VigilIcons
 import java.time.LocalTime
 
@@ -234,16 +233,20 @@ private fun ChangeStartDateRow(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            SlideToConfirm(
-                text = "Slide to change start date",
-                icon = VigilIcons.chevronRight,
-                color = MaterialTheme.colorScheme.error,
-                onConfirm = {
+            Button(
+                onClick = {
                     onDone()
                     confirming = false
                     pickStart(context, vm::start)
-                }
-            )
+                },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(25.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("Change start date", color = Color.White)
+            }
             TextButton(onClick = { confirming = false }, modifier = Modifier.align(Alignment.End)) {
                 Text("Cancel")
             }

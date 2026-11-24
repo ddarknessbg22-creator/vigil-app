@@ -13,7 +13,9 @@ import kotlin.math.hypot
 
 /**
  * Theme-change reveal, drawn entirely in the draw phase.
- * No value is read in composition, so the Scaffold never recomposes per frame.
+ *
+ * A soft light wave expands from the centre and fades — no blue flash,
+ * no recomposition per frame.
  */
 @Composable
 fun Modifier.themeWave(themeKey: String): Modifier {
@@ -24,7 +26,7 @@ fun Modifier.themeWave(themeKey: String): Modifier {
         if (key[0] == themeKey) return@LaunchedEffect
         key[0] = themeKey
         anim.snapTo(0f)
-        anim.animateTo(1f, tween(900))
+        anim.animateTo(1f, tween(1000))
     }
 
     return this.then(
@@ -32,12 +34,21 @@ fun Modifier.themeWave(themeKey: String): Modifier {
             drawContent()
             val p = anim.value
             if (p > 0f && p < 1f) {
-                val radius = hypot(size.width, size.height) *
-                    (1f - (1f - p) * (1f - p) * (1f - p))
-                val alpha = (1f - p) * 0.28f
+                val eased = 1f - (1f - p) * (1f - p) * (1f - p)
+                val radius = hypot(size.width, size.height) * eased
                 val center = Offset(size.width / 2f, size.height / 2f)
-                drawCircle(Color(0xFF0A84FF).copy(alpha = alpha), radius, center)
-                drawCircle(Color.White.copy(alpha = alpha * 0.22f), radius * 0.72f, center)
+                val fade = (1f - p) * (1f - p) * 0.20f
+
+                drawCircle(
+                    color = Color.White.copy(alpha = fade),
+                    radius = radius,
+                    center = center
+                )
+                drawCircle(
+                    color = Color(0xFF0A84FF).copy(alpha = fade * 0.7f),
+                    radius = radius * 0.78f,
+                    center = center
+                )
             }
         }
     )

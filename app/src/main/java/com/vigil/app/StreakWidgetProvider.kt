@@ -45,8 +45,14 @@ class StreakWidgetProvider : AppWidgetProvider() {
                     val runs = withContext(Dispatchers.IO) { db.journal().runsOnce() }
                     val now = System.currentTimeMillis()
                     val active = runs.firstOrNull { it.end == null }
-                    val days = if (active == null) 0L
+                    val rawDays = if (active == null) 0L
                     else ((now - active.start).coerceAtLeast(0) / 86_400_000L)
+                    val loggedToday = withContext(Dispatchers.IO) {
+                        db.journal().entriesOnce().any {
+                            it.day == java.time.LocalDate.now().toString() && !it.setback
+                        }
+                    }
+                    val days = if (rawDays < 1L && loggedToday && active != null) 1L else rawDays
                     val best = runs.maxOfOrNull {
                         ((it.end ?: now) - it.start).coerceAtLeast(0) / 86_400_000L
                     } ?: 0L

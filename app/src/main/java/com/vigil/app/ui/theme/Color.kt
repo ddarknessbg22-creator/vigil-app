@@ -22,8 +22,8 @@ object VigilPalette {
 
     val DeepBlack = Color(0xFF000000)
     val Graphite = Color(0xFF000000)
-    val Charcoal = Color(0xFF1C1C1E)
-    val Elevated = Color(0xFF2C2C2E)
+    val Charcoal = Color(0xFF1F1F22)
+    val Elevated = Color(0xFF2E2E32)
 
     val Success = Color(0xFF30D158)
     val Warning = Color(0xFFFF9F0A)
@@ -74,10 +74,10 @@ val DarkScheme = darkColorScheme(
     surfaceVariant = VigilPalette.Charcoal,
     onSurfaceVariant = VigilPalette.TextSecondary,
     surfaceContainerLowest = Color(0xFF0A0A0A),
-    surfaceContainerLow = Color(0xFF141416),
+    surfaceContainerLow = Color(0xFF161618),
     surfaceContainer = VigilPalette.Charcoal,
     surfaceContainerHigh = VigilPalette.Elevated,
-    surfaceContainerHighest = Color(0xFF3A3A3C),
+    surfaceContainerHighest = Color(0xFF3D3D42),
     outline = Color(0xFF38383A),
     outlineVariant = Color(0xFF2C2C2E),
     error = VigilPalette.Danger,

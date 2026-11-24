@@ -33,7 +33,10 @@ fun ProgressScreen(vm: VigilViewModel) {
     val goals by vm.goals.collectAsStateWithLifecycle()
 
     val today = Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault()).toLocalDate()
-    val active = runs.firstOrNull { it.end == null }?.elapsed(now)?.toDays() ?: 0L
+    val activeRun = runs.firstOrNull { it.end == null }
+    val activeRaw = activeRun?.elapsed(now)?.toDays() ?: 0L
+    val active = if (activeRaw < 1L && activeRun != null &&
+        entries.any { it.day == today.toString() && !it.setback }) 1L else activeRaw
     val best = runs.maxOfOrNull { it.elapsed(now).toDays() } ?: 0L
     val comebacks = (runs.size - 1).coerceAtLeast(0)
 

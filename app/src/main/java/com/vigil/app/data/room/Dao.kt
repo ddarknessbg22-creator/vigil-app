@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
     @Query("SELECT * FROM reading WHERE id=:id") suspend fun reading(id:String):Reading?
     @Query("SELECT * FROM runs ORDER BY start DESC LIMIT 1") suspend fun latest():Run?
     @Query("SELECT * FROM journal WHERE day=:day LIMIT 1") suspend fun entry(day:String):Entry?
+    @Query("SELECT * FROM journal ORDER BY day DESC") suspend fun entriesOnce():List<Entry>
     @Insert(onConflict=OnConflictStrategy.REPLACE) suspend fun save(value:Entry)
     @Insert(onConflict=OnConflictStrategy.REPLACE) suspend fun save(value:Goal)
     @Insert(onConflict=OnConflictStrategy.REPLACE) suspend fun save(value:Run)

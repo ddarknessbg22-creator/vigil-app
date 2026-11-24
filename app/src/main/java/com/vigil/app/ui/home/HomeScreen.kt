@@ -152,7 +152,10 @@ private fun CleanCard(
     nextTarget: Long,
     onSetStart: () -> Unit
 ) {
-    val days = if (run == null) 0L else elapsed.toDays().coerceAtLeast(0)
+    val rawDays = if (run == null) 0L else elapsed.toDays().coerceAtLeast(0)
+    val todayLogged = dayKeys.contains(today.toString())
+    // Logging today clean makes it day one immediately — never show 0 after a pass.
+    val days = if (rawDays < 1L && todayLogged) 1L else rawDays
     val shown by animateIntAsState(days.toInt(), tween(900), label = "cleanDays")
     val nextMilestone = listOf(7L, 14L, 30L, 60L, 90L, 180L, 365L)
         .firstOrNull { it > days } ?: 365L
@@ -164,7 +167,10 @@ private fun CleanCard(
     val appear by animateFloatAsState(if (ready) 1f else 0.94f, tween(420), label = "cleanAppear")
 
     val dayKeys = remember(entries) { entries.filter { !it.setback }.map { it.day }.toSet() }
-    val week = remember(today) { (6 downTo 0).map { today.minusDays(it.toLong()) } }
+    val week = remember(today) {
+        val monday = today.minusDays((today.dayOfWeek.value - 1).toLong())
+        (0..6).map { monday.plusDays(it.toLong()) }
+    }
     val labels = listOf("M", "T", "W", "T", "F", "S", "S")
 
     Surface(
@@ -228,13 +234,13 @@ private fun CleanCard(
                     if (days == 1L) "day" else "days",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 14.dp)
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
             }
 
             Text(
                 text = if (run == null) "Every clean run starts somewhere. Choose your beginning."
-                else StreakVoice.forDay(days, best, comebackCount, firstEverPass, justReturned),
+                else StreakVoice.forDay(days, best, comebackCount, firstEverPass, justReturned && days > 1L),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -261,6 +267,7 @@ private fun CleanCard(
                                     when {
                                         marked -> MaterialTheme.colorScheme.primary
                                         isToday -> MaterialTheme.colorScheme.primary.copy(alpha = 0.22f)
+                                        date.isAfter(today) -> Color.Transparent
                                         else -> MaterialTheme.colorScheme.surfaceContainerHighest
                                     }
                                 )

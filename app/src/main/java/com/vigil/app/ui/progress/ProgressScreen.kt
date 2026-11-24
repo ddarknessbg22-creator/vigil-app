@@ -15,6 +15,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vigil.app.domain.StreakVoice
 import com.vigil.app.ui.VigilViewModel
 import com.vigil.app.ui.components.*
+import com.vigil.app.data.elapsed
+import androidx.compose.ui.graphics.Color
 import com.vigil.app.ui.theme.VigilIcons
 import java.time.Instant
 import java.time.LocalDate
@@ -74,7 +76,7 @@ fun ProgressScreen(vm: VigilViewModel) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    "$comebacks ${if (comebacks == 1L) "return" else "returns"} · every one is practice.",
+                    "$comebacks ${if (comebacks == 1) "return" else "returns"} · every one is practice.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -203,7 +205,7 @@ private fun CalendarCard(now: Long, entries: List<com.vigil.app.data.room.Entry>
 }
 
 @Composable
-private fun Legend(color: androidx.compose.ui.graphics.Color, label: String) {
+private fun Legend(color: Color, label: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(9.dp).clip(RoundedCornerShape(3.dp)).background(color))
         Spacer(Modifier.width(5.dp))

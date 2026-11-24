@@ -114,6 +114,17 @@ fun SettingsScreen(vm: VigilViewModel) {
             )
         }
 
+        SettingsCard("Updates", VigilIcons.download) {
+            SettingsRow("Check for updates", "See if a newer version is available") {
+                vm.checkUpdate(true)
+            }
+            Text(
+                "Updates come from the official GitHub release. You can skip any prompt and it will ask again next launch.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
         SettingsCard("About", VigilIcons.info) {
             Text("VIGIL 2.0", style = MaterialTheme.typography.titleSmall)
             Text(

@@ -62,11 +62,15 @@ fun VigilApp(vm: VigilViewModel = viewModel()) {
                 text = {
                     Column {
                         Text("VIGIL ${update.version} is ready.", style = MaterialTheme.typography.bodyMedium)
-                        if (update.notes.isNotBlank()) {
-                            Spacer(Modifier.height(8.dp))
-                            Text(update.notes, style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "Released ${update.published}  ·  ${update.size}  ·  tap to install",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(update.notes, style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 },
                 confirmButton = {

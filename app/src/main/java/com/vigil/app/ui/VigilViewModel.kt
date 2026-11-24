@@ -17,8 +17,8 @@ class VigilViewModel(app:Application):AndroidViewModel(app){
     private val context=VigilApplication.from(app)
     private val repo=context.repository
     private val updater=UpdateChecker(context)
-    private val _update=MutableStateFlow<AppUpdate?>(null)
-    val update:StateFlow<AppUpdate?>=_update.asStateFlow()
+    private val _update: MutableStateFlow<AppUpdate?> = MutableStateFlow(null)
+    val update: StateFlow<AppUpdate?> = _update.asStateFlow()
     private val scope=SharingStarted.WhileSubscribed(0)
     val options=repo.prefs.options.stateIn(viewModelScope,scope,Options())
     val entries=repo.dao.entries().stateIn(viewModelScope,scope,emptyList())
@@ -32,8 +32,16 @@ class VigilViewModel(app:Application):AndroidViewModel(app){
     fun start(at:Long)=work("Your commitment starts here."){repo.start(at)}
     fun restart()=work("Your earlier progress is safe. This is a new beginning."){repo.restart()}
     fun reflect(note:String)=work("Today’s check-in is saved."){repo.reflect(note)}
-    fun checkUpdate()=viewModelScope.launch(Dispatchers.IO) {
-        _update.value=updater.latest()
+    fun checkUpdate(manual: Boolean = false)=viewModelScope.launch(Dispatchers.IO) {
+        updater.checkNow().fold(
+            onSuccess = { found ->
+                _update.value=found
+                if(manual && found==null) message.emit("You’re up to date.")
+            },
+            onFailure = {
+                if(manual) message.emit("Could not reach GitHub. Try again later.")
+            }
+        )
     }
     fun skipUpdate(){_update.value=null}
     fun downloadAndInstall(update:AppUpdate)=viewModelScope.launch {

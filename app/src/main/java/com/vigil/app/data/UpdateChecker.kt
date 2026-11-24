@@ -11,20 +11,24 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Locale
 
 @Serializable
-private data class GhAsset(val name: String, val browser_download_url: String)
+private data class GhAsset(val name: String, val size: Long = 0, val browser_download_url: String)
 
 @Serializable
 private data class GhRelease(
     val tag_name: String,
     val body: String? = null,
+    val published_at: String? = null,
     val assets: List<GhAsset> = emptyList()
 )
 
 data class AppUpdate(
     val version: String,
     val notes: String,
+    val size: String,
+    val published: String,
     val url: String
 )
 
@@ -49,7 +53,14 @@ class UpdateChecker(private val context: Context) {
             val apk = release.assets.firstOrNull { it.name.endsWith(".apk") }
                 ?: return@let null
             if (isNewer(version)) {
-                AppUpdate(version, release.body?.take(500).orEmpty(), apk.browser_download_url)
+                AppUpdate(
+                    version = version,
+                    notes = release.body?.take(500)?.ifBlank { "Stability improvements and new motivation lines." }
+                        ?: "Stability improvements and new motivation lines.",
+                    size = formatSize(apk.size),
+                    published = release.published_at?.take(10)?.replace('-', '.') ?: "recently",
+                    url = apk.browser_download_url
+                )
             } else {
                 null
             }
@@ -81,6 +92,15 @@ class UpdateChecker(private val context: Context) {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
     }
+
+    private fun formatSize(bytes: Long): String = when {
+        bytes <= 0 -> "size unknown"
+        bytes >= 1_048_576 -> String.format(Locale.US, "%.1f MB", bytes / 1_048_576.0)
+        else -> String.format(Locale.US, "%d KB", bytes / 1024)
+    }
+
+    /** Manual check from Settings: reports even when there is no update. */
+    suspend fun checkNow(): Result<AppUpdate?> = runCatching { latest() }
 
     private fun isNewer(candidate: String): Boolean {
         val parse = { value: String ->

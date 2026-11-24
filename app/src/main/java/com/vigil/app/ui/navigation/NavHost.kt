@@ -55,26 +55,27 @@ fun VigilApp(vm: VigilViewModel = viewModel()) {
         LaunchedEffect(Unit) { vm.checkUpdate() }
         LaunchedEffect(vm) { vm.message.collect { snackbar.showSnackbar(it) } }
 
-        if (update != null) {
+        val updateInfo = update
+        if (updateInfo != null) {
             AlertDialog(
                 onDismissRequest = { vm.skipUpdate() },
                 title = { Text("Update available") },
                 text = {
                     Column {
-                        Text("VIGIL ${update.version} is ready.", style = MaterialTheme.typography.bodyMedium)
+                        Text("VIGIL ${updateInfo.version} is ready.", style = MaterialTheme.typography.bodyMedium)
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "Released ${update.published}  ·  ${update.size}  ·  tap to install",
+                            "Released ${updateInfo.published}  ·  ${updateInfo.size}  ·  tap to install",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(Modifier.height(8.dp))
-                        Text(update.notes, style = MaterialTheme.typography.bodySmall,
+                        Text(updateInfo.notes, style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = { vm.downloadAndInstall(update) }) { Text("Download & install") }
+                    TextButton(onClick = { vm.downloadAndInstall(updateInfo) }) { Text("Download & install") }
                 },
                 dismissButton = {
                     TextButton(onClick = { vm.skipUpdate() }) { Text("Not now") }

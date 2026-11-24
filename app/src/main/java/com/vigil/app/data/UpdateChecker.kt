@@ -106,7 +106,7 @@ class UpdateChecker(private val context: Context) {
         val parse = { value: String ->
             value.split('.').mapNotNull { it.toIntOrNull() }
         }
-        val current = parse(android.BuildConfig.VERSION_NAME)
+        val current = parse(com.vigil.app.BuildConfig.VERSION_NAME)
         val next = parse(candidate)
         for (i in 0 until maxOf(current.size, next.size)) {
             val a = current.getOrElse(i) { 0 }

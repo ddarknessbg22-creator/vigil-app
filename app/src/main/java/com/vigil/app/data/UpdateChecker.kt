@@ -119,15 +119,15 @@ class UpdateChecker(private val context: Context) {
     private fun cleanNotes(raw: String?): String {
         val cleaned = raw
             ?.lineSequence()
-            .map { it
+            ?.map { it
                 .replace(Regex("^#+\\s*"), "")            // headings
                 .replace("**", "")                          // bold
                 .replace(Regex("^\\s*[-*]\\s+"), "• ")     // bullets
                 .trim()
             }
-            .filter { it.isNotBlank() }
-            .joinToString("\n")
-            .take(600)
+            ?.filter { it.isNotBlank() }
+            ?.joinToString("\n")
+            ?.take(600)
             .orEmpty()
         return cleaned.ifBlank { "Stability improvements and new motivation lines." }
     }

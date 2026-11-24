@@ -152,6 +152,7 @@ private fun CleanCard(
     nextTarget: Long,
     onSetStart: () -> Unit
 ) {
+    val dayKeys = remember(entries) { entries.filter { !it.setback }.map { it.day }.toSet() }
     val rawDays = if (run == null) 0L else elapsed.toDays().coerceAtLeast(0)
     val todayLogged = dayKeys.contains(today.toString())
     // Logging today clean makes it day one immediately — never show 0 after a pass.
@@ -166,7 +167,6 @@ private fun CleanCard(
     LaunchedEffect(Unit) { ready = true }
     val appear by animateFloatAsState(if (ready) 1f else 0.94f, tween(420), label = "cleanAppear")
 
-    val dayKeys = remember(entries) { entries.filter { !it.setback }.map { it.day }.toSet() }
     val week = remember(today) {
         val monday = today.minusDays((today.dayOfWeek.value - 1).toLong())
         (0..6).map { monday.plusDays(it.toLong()) }

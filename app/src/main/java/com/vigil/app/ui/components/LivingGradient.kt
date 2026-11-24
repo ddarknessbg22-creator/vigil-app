@@ -1,24 +1,25 @@
 package com.vigil.app.ui.components
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import kotlin.math.PI
 import kotlin.math.sin
 
 /**
- * Living blue gradient: a slow sweep of light across the card.
- * The animated value is read inside `drawBehind`, so it never re-composes.
+ * Living blue gradient, drawn entirely in the draw phase.
+ *
+ * The animated value is read ONLY inside `drawBehind` — Compose invalidates
+ * the draw node, not the composition. No screen recomposes per frame.
  */
 @Composable
 fun Modifier.livingGradient(
@@ -31,17 +32,21 @@ fun Modifier.livingGradient(
     glow: Color = Color(0xFF4C9DFF),
     periodMs: Int = 9000
 ): Modifier {
-    val phase by rememberInfiniteTransition(label = "gradient").animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(periodMs, easing = LinearEasing), RepeatMode.Restart),
-        label = "phase"
-    )
-    val drift = ((sin(phase.toDouble() * 2.0 * PI) + 1.0) / 2.0).toFloat()
+    val phase = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        phase.animateTo(
+            1f,
+            infiniteRepeatable(tween(periodMs / 2, easing = LinearEasing), RepeatMode.Reverse)
+        )
+    }
 
     return this.drawBehind {
+        // Read in draw phase only — never in composition.
+        val p = phase.value
+        val drift = ((sin(p.toDouble() * 2.0 * PI) + 1.0) / 2.0).toFloat()
         val w = size.width
         val h = size.height
+
         drawRect(
             brush = Brush.linearGradient(
                 colors = base,

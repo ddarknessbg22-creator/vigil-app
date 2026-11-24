@@ -19,7 +19,9 @@ class VigilViewModel(app:Application):AndroidViewModel(app){
     private val updater=UpdateChecker(context)
     private val _update: MutableStateFlow<AppUpdate?> = MutableStateFlow(null)
     val update: StateFlow<AppUpdate?> = _update.asStateFlow()
-    private val scope=SharingStarted.WhileSubscribed(0)
+    // Keep flows alive across tab switches: with 0ms stop timeout, every
+    // screen change tore down and restarted all Room/DataStore collectors.
+    private val scope=SharingStarted.WhileSubscribed(5_000)
     val options=repo.prefs.options.stateIn(viewModelScope,scope,Options())
     val entries=repo.dao.entries().stateIn(viewModelScope,scope,emptyList())
     val runs=repo.dao.runs().stateIn(viewModelScope,scope,emptyList())

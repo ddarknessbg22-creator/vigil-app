@@ -87,12 +87,8 @@ fun IosSwitch(
             ) {
                 val next = !checked
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                scope.launch {
-                    progress.animateTo(
-                        if (next) 1f else 0f,
-                        spring(dampingRatio = 0.86f, stiffness = 420f)
-                    )
-                }
+                // Let the parent state drive the thumb — if the change is
+                // rejected, it must spring back instead of staying half-on.
                 onCheckedChange(next)
             }
             .pointerInput(enabled) {
@@ -110,15 +106,17 @@ fun IosSwitch(
                     onDragEnd = {
                         val next = progress.value >= 0.5f
                         dragging = false
-                        scope.launch {
-                            progress.animateTo(
-                                if (next) 1f else 0f,
-                                spring(dampingRatio = 0.86f, stiffness = 420f)
-                            )
-                        }
                         if (next != checked) {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             onCheckedChange(next)
+                        } else {
+                            // rejected — snap back to the real state
+                            scope.launch {
+                                progress.animateTo(
+                                    if (checked) 1f else 0f,
+                                    spring(dampingRatio = 0.86f, stiffness = 420f)
+                                )
+                            }
                         }
                     }
                 )

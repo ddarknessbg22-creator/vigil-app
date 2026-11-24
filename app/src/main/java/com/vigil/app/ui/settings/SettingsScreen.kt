@@ -83,12 +83,12 @@ fun SettingsScreen(vm: VigilViewModel) {
                 detail = "One local notification near your chosen time",
                 checked = o.reminder,
                 onCheckedChange = { enabled ->
+                    // Persist first so the thumb always reflects the real state.
+                    vm.notifications(enabled, o.minute, o.quoteNotice)
                     if (enabled && Build.VERSION.SDK_INT >= 33 &&
                         context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
                     ) {
                         perm.launch(Manifest.permission.POST_NOTIFICATIONS)
-                    } else {
-                        vm.notifications(enabled, o.minute, o.quoteNotice)
                     }
                 }
             )
@@ -178,7 +178,7 @@ fun SettingsScreen(vm: VigilViewModel) {
 
             "restore" -> {
                 Text(
-                    "A valid backup replaces your streaks, goals, reflections and saved quotes. Export first if you want a copy.",
+                    "A valid backup replaces your streaks, reflections and saved quotes. Export first if you want a copy.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -29,4 +29,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cp app/build/outputs/apk/debug/app-debug.apk "vigil-${GITHUB_REF_NAME}-debug.apk"
-          gh release create "$GITHUB_REF_NAME" "vigil-${GITHUB_REF_NAME}-debug.apk" --prerelease --title "VIGIL ${GITHUB_REF_NAME}" --notes "Debug-signed APK. Enable install from unknown sources to sideload."
+          gh release create "$GITHUB_REF_NAME" "vigil-${GITHUB_REF_NAME}-debug.apk" --title "VIGIL ${GITHUB_REF_NAME}" --notes "Install: download the APK and open it. Android asks for one-time permission to install apps from your browser or files, then confirm. Updating from an older VIGIL: open the app and accept the update prompt, or install this APK over it (same signing key, data is kept)."

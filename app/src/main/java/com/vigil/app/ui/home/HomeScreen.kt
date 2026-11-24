@@ -160,15 +160,11 @@ private fun CleanCard(
     val todayLogged = dayKeys.contains(today.toString())
     // Logging today clean makes it day one immediately — never show 0 after a pass.
     val days = if (rawDays < 1L && todayLogged) 1L else rawDays
-    val shown by animateIntAsState(days.toInt(), tween(900), label = "cleanDays")
+    val shown = days.toInt()
     val nextMilestone = listOf(7L, 14L, 30L, 60L, 90L, 180L, 365L)
         .firstOrNull { it > days } ?: 365L
     val progress = (days.toFloat() / nextMilestone).coerceIn(0f, 1f)
-    val animatedProgress by animateFloatAsState(progress, spring(stiffness = 140f), label = "cleanProgress")
-
-    var ready by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { ready = true }
-    val appear by animateFloatAsState(if (ready) 1f else 0.94f, tween(420), label = "cleanAppear")
+    val animatedProgress = progress
 
     val week = remember(today) {
         val monday = today.minusDays((today.dayOfWeek.value - 1).toLong())
@@ -179,7 +175,7 @@ private fun CleanCard(
     Surface(
         shape = RoundedCornerShape(28.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.fillMaxWidth().scale(appear)
+        modifier = Modifier.fillMaxWidth()
     ) {
         Column(Modifier.fillMaxWidth().padding(20.dp)) {
             Row(

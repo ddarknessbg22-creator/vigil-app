@@ -317,15 +317,13 @@ private fun VigilNavBar(current: String, onSelect: (String) -> Unit) {
                     if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     tween(160), label = "navTint"
                 )
-                val scale by animateFloatAsState(if (selected) 1.06f else 1f, tween(160), label = "navScale")
                 Column(
                     Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(18.dp))
                         .background(pill)
                         .clickable { onSelect(item.name) }
-                        .padding(vertical = 8.dp)
-                        .graphicsLayer { scaleX = scale; scaleY = scale },
+                        .padding(vertical = 8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(item.icon, contentDescription = null, tint = tint, modifier = Modifier.size(21.dp))

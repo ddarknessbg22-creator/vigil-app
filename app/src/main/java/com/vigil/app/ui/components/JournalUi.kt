@@ -47,16 +47,8 @@ fun Page(
     // draw phase, so scrolling stays at display refresh rate.
     val scrollForDraw = scroll
 
-    // One-shot entrance, applied once per composition rather than per frame.
-    var shown by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { shown = true }
-    val entrance by animateFloatAsStateCompat(if (shown) 1f else 0.96f)
-
-    Box(
-        Modifier
-            .fillMaxSize()
-            .graphicsLayer { alpha = entrance }
-    ) {
+    // No entrance animation: the page must be fully formed on the first frame.
+    Box(Modifier.fillMaxSize()) {
         Column(
             Modifier
                 .fillMaxSize()

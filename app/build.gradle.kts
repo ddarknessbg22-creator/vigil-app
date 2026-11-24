@@ -14,8 +14,8 @@ android {
         applicationId = "com.vigil.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 9
-        versionName = "3.0.3"
+        versionCode = 10
+        versionName = "3.0.4"
     }
 
     buildTypes {

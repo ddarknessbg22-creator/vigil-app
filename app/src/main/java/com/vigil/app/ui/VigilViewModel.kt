@@ -44,12 +44,39 @@ class VigilViewModel(app:Application):AndroidViewModel(app){
         )
     }
     fun skipUpdate(){_update.value=null}
-    fun downloadAndInstall(update:AppUpdate)=viewModelScope.launch {
-        try {
-            withContext(Dispatchers.IO){ updater.download(update.url) }.let { file ->
-                getApplication<Application>().startActivity(updater.installIntent(file))
+
+    data class DownloadProgress(val done: Long, val total: Long)
+    private val _progress = MutableStateFlow<DownloadProgress?>(null)
+    val progress: StateFlow<DownloadProgress?> = _progress.asStateFlow()
+    private var downloadJob: Job? = null
+
+    fun downloadAndInstall(update:AppUpdate) {
+        if (downloadJob?.isActive == true) return
+        downloadJob = viewModelScope.launch {
+            try {
+                _progress.value = DownloadProgress(0, 0)
+                val file = updater.download(update.url) { done, total ->
+                    _progress.value = DownloadProgress(done, total)
+                }
+                _progress.value = null
+                try {
+                    getApplication<Application>().startActivity(updater.installIntent(file))
+                } catch (e: Exception) {
+                    message.emit("Allow VIGIL to install unknown apps in Settings, then try again.")
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _progress.value = null
+                message.emit("Could not download the update. Check your connection.")
             }
-        } catch(e:Exception){ message.emit("Could not download the update. Check your connection.") }
+        }
+    }
+
+    fun cancelDownload() {
+        downloadJob?.cancel()
+        downloadJob = null
+        _progress.value = null
     }
     fun checkIn(clean:Boolean,note:String,message:String?=null)=work(
         message ?: if(clean) "Today is logged clean." else "Setback saved. This is a new start."

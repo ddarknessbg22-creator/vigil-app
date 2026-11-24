@@ -55,8 +55,7 @@ class UpdateChecker(private val context: Context) {
             if (isNewer(version)) {
                 AppUpdate(
                     version = version,
-                    notes = release.body?.take(500)?.ifBlank { "Stability improvements and new motivation lines." }
-                        ?: "Stability improvements and new motivation lines.",
+                    notes = cleanNotes(release.body),
                     size = formatSize(apk.size),
                     published = release.published_at?.take(10)?.replace('-', '.') ?: "recently",
                     url = apk.browser_download_url
@@ -67,18 +66,41 @@ class UpdateChecker(private val context: Context) {
         }
     }
 
-    /** Downloads the release APK into private storage. */
-    suspend fun download(url: String): File = withContext(Dispatchers.IO) {
-        val dir = File(context.filesDir, "apk").apply { mkdirs() }
-        val target = File(dir, "update.apk")
-        val connection = URL(url).openConnection() as HttpURLConnection
-        connection.connectTimeout = 15_000
-        connection.readTimeout = 60_000
-        connection.inputStream.use { input ->
-            target.outputStream().use { output -> input.copyTo(output) }
+    /** Downloads the release APK into private storage, reporting progress. */
+    suspend fun download(url: String, onProgress: (Long, Long) -> Unit = { _, _ -> }): File =
+        withContext(Dispatchers.IO) {
+            val dir = File(context.filesDir, "apk").apply { mkdirs() }
+            val target = File(dir, "update.apk")
+            val connection = URL(url).openConnection() as HttpURLConnection
+            connection.connectTimeout = 15_000
+            connection.readTimeout = 60_000
+            connection.instanceFollowRedirects = true
+            try {
+                val total = connection.contentLengthLong
+                connection.inputStream.use { input ->
+                    target.outputStream().use { output ->
+                        val buffer = ByteArray(64 * 1024)
+                        var done = 0L
+                        var lastReported = 0L
+                        while (true) {
+                            val n = input.read(buffer)
+                            if (n <= 0) break
+                            output.write(buffer, 0, n)
+                            done += n
+                            // Throttle UI updates to every 128 KB.
+                            if (done - lastReported >= 131_072) {
+                                lastReported = done
+                                onProgress(done, total)
+                            }
+                        }
+                        onProgress(done, if (total > 0) total else done)
+                    }
+                }
+            } finally {
+                connection.disconnect()
+            }
+            target
         }
-        target
-    }
 
     fun installIntent(file: File): Intent {
         val uri: Uri = FileProvider.getUriForFile(
@@ -91,6 +113,23 @@ class UpdateChecker(private val context: Context) {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
+    }
+
+    /** Turns GitHub release Markdown into plain, readable lines. */
+    private fun cleanNotes(raw: String?): String {
+        val cleaned = raw
+            ?.lineSequence()
+            .map { it
+                .replace(Regex("^#+\\s*"), "")            // headings
+                .replace("**", "")                          // bold
+                .replace(Regex("^\\s*[-*]\\s+"), "• ")     // bullets
+                .trim()
+            }
+            .filter { it.isNotBlank() }
+            .joinToString("\n")
+            .take(600)
+            .orEmpty()
+        return cleaned.ifBlank { "Stability improvements and new motivation lines." }
     }
 
     private fun formatSize(bytes: Long): String = when {

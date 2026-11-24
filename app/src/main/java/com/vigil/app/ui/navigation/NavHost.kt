@@ -35,6 +35,11 @@ private val TABS = listOf(
     NavItem("Settings", VigilIcons.settings)
 )
 
+private fun mb(bytes: Long): String = when {
+    bytes >= 1_048_576 -> String.format(java.util.Locale.US, "%.1f MB", bytes / 1_048_576.0)
+    else -> String.format(java.util.Locale.US, "%d KB", bytes / 1024)
+}
+
 @Composable
 fun VigilApp(vm: VigilViewModel = viewModel()) {
     val opts by vm.options.collectAsStateWithLifecycle()
@@ -51,34 +56,68 @@ fun VigilApp(vm: VigilViewModel = viewModel()) {
         var tab by rememberSaveable { mutableStateOf("Home") }
         val snackbar = remember { SnackbarHostState() }
         val update by vm.update.collectAsStateWithLifecycle()
+        val download by vm.progress.collectAsStateWithLifecycle()
 
         LaunchedEffect(Unit) { vm.checkUpdate() }
         LaunchedEffect(vm) { vm.message.collect { snackbar.showSnackbar(it) } }
 
         val updateInfo = update
         if (updateInfo != null) {
+            val dl = download
             AlertDialog(
-                onDismissRequest = { vm.skipUpdate() },
-                title = { Text("Update available") },
+                onDismissRequest = { if (dl == null) vm.skipUpdate() },
+                title = { Text(if (dl == null) "Update available" else "Downloading update") },
                 text = {
                     Column {
-                        Text("VIGIL ${updateInfo.version} is ready.", style = MaterialTheme.typography.bodyMedium)
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            "Released ${updateInfo.published}  ·  ${updateInfo.size}  ·  tap to install",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(updateInfo.notes, style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (dl == null) {
+                            Text("VIGIL ${updateInfo.version} is ready.", style = MaterialTheme.typography.bodyMedium)
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                "Released ${updateInfo.published}  ·  ${updateInfo.size}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(updateInfo.notes, style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        } else {
+                            val pct = if (dl.total > 0)
+                                (dl.done * 100 / dl.total).toInt().coerceIn(0, 100) else 0
+                            if (dl.total > 0) {
+                                LinearProgressIndicator(
+                                    progress = { dl.done.toFloat() / dl.total },
+                                    modifier = Modifier.fillMaxWidth().height(6.dp),
+                                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                                )
+                            } else {
+                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth().height(6.dp))
+                            }
+                            Spacer(Modifier.height(10.dp))
+                            Text(
+                                if (dl.total > 0)
+                                    "$pct%  ·  ${mb(dl.done)} of ${mb(dl.total)}"
+                                else "${mb(dl.done)} downloaded",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                "Keep the app open. The installer opens when it finishes.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = { vm.downloadAndInstall(updateInfo) }) { Text("Download & install") }
+                    if (dl == null) {
+                        TextButton(onClick = { vm.downloadAndInstall(updateInfo) }) { Text("Download & install") }
+                    }
                 },
                 dismissButton = {
-                    TextButton(onClick = { vm.skipUpdate() }) { Text("Not now") }
+                    TextButton(onClick = { if (dl == null) vm.skipUpdate() else vm.cancelDownload() }) {
+                        Text(if (dl == null) "Not now" else "Cancel")
+                    }
                 }
             )
         }

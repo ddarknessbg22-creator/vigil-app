@@ -6,20 +6,24 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vigil.app.ui.VigilViewModel
@@ -62,7 +66,7 @@ fun VigilApp(vm: VigilViewModel = viewModel()) {
 
         val updateInfo = update
         if (updateInfo != null) {
-            UpdateSheet(
+            SoftwareUpdateSheet(
                 version = updateInfo.version,
                 notes = updateInfo.notes,
                 published = updateInfo.published,
@@ -90,9 +94,13 @@ fun VigilApp(vm: VigilViewModel = viewModel()) {
     }
 }
 
-/** iOS-style update sheet: spring entry, animated ring, breathing accent. */
+/**
+ * "Software Update" sheet — the dark, centered iOS-style dialog:
+ * title, "Downloading VIGIL x…", hairline progress, "What's new" artwork,
+ * "Top Features" bullets, and a full-width separated Cancel button.
+ */
 @Composable
-private fun UpdateSheet(
+private fun SoftwareUpdateSheet(
     version: String,
     notes: String,
     published: String,
@@ -102,147 +110,191 @@ private fun UpdateSheet(
     onCancel: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    Dialog(
-        onDismissRequest = { if (download == null) onDismiss() }
-    ) {
-        val entry = remember { Animatable(0f) }
+    androidx.compose.ui.window.Dialog(onDismissRequest = { if (download == null) onDismiss() }) {
+        val enter = remember { Animatable(0f) }
         LaunchedEffect(Unit) {
-            entry.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = 320f))
+            enter.animateTo(1f, spring(dampingRatio = 0.82f, stiffness = 340f))
         }
+        val eased = 1f - (1f - enter.value) * (1f - enter.value)
 
         Surface(
-            shape = RoundedCornerShape(32.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 0.dp,
-            shadowElevation = 32.dp,
+            shape = RoundedCornerShape(26.dp),
+            color = Color(0xFF1C1C1E),
             modifier = Modifier
-                .fillMaxWidth(0.9f)
+                .fillMaxWidth(0.86f)
+                .wrapContentHeight()
+                .shadow(28.dp, RoundedCornerShape(26.dp))
                 .graphicsLayer {
-                    val eased = 1f - (1f - entry.value) * (1f - entry.value)
                     alpha = eased
-                    scaleX = 0.9f + eased * 0.1f
-                    scaleY = 0.9f + eased * 0.1f
-                    translationY = (1f - eased) * 48f
+                    scaleX = 0.92f + eased * 0.08f
+                    scaleY = 0.92f + eased * 0.08f
+                    translationY = (1f - eased) * 36f
                 }
         ) {
-            Column(
-                Modifier.fillMaxWidth().padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Box(
-                    Modifier
-                        .size(width = 38.dp, height = 5.dp)
-                        .clip(RoundedCornerShape(50))
-                        .background(MaterialTheme.colorScheme.outline)
-                )
+            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+                // Header
+                Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 22.dp)) {
+                    Text(
+                        "Software Update",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                        color = Color.White,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        if (download == null) "VIGIL $version is ready" else "Downloading VIGIL $version…",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFFB0B0B8),
+                        modifier = Modifier.fillMaxWidth().padding(top = 3.dp),
+                        textAlign = TextAlign.Center
+                    )
 
-                Spacer(Modifier.height(20.dp))
+                    Spacer(Modifier.height(14.dp))
 
-                // Animated icon: ring scale + subtle rotation while downloading.
-                val infinite = rememberInfiniteTransition(label = "updatePulse")
-                val pulse by infinite.animateFloat(
-                    0.96f, 1.04f,
-                    infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-                    label = "pulse"
-                )
-                val rotation by infinite.animateFloat(
-                    -4f, 4f,
-                    infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-                    label = "tilt"
-                )
-                val iconScale = if (download == null) pulse else 1f
-
-                Box(
-                    Modifier
-                        .size(64.dp)
-                        .graphicsLayer {
-                            scaleX = iconScale
-                            scaleY = iconScale
-                            rotationZ = rotation
+                    // Progress: thin hairline bar, no rounded pill.
+                    val pct = if (download?.total ?: 0 > 0)
+                        (download!!.done * 100 / download.total).toInt().coerceIn(0, 100) else 0
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(Color(0xFF3A3A3C))
+                    ) {
+                        if (download == null) {
+                            Box(Modifier.fillMaxWidth(0.12f).height(4.dp).background(Color(0xFF0A84FF)))
+                        } else {
+                            val animated by animateFloatAsState(
+                                if (download.total > 0) download.done.toFloat() / download.total else 0f,
+                                tween(180), label = "downloadBar"
+                            )
+                            Box(
+                                Modifier.fillMaxWidth(animated.coerceIn(0.01f, 1f)).height(4.dp)
+                                    .background(Color(0xFF0A84FF))
+                            )
                         }
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        if (download == null) VigilIcons.download else VigilIcons.trendingUp,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp)
+                    }
+                    if (download != null) {
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            "$pct%  ·  ${mb(download.done)} of ${mb(download.total)}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFF8E8E96),
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+
+                // Divider
+                Box(Modifier.fillMaxWidth().height(0.5.dp).background(Color(0xFF3A3A3C)))
+
+                // What's new — artwork panel + bullets
+                Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 18.dp)) {
+                    Text(
+                        "What's new",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                        color = Color.White
+                    )
+                    Spacer(Modifier.height(12.dp))
+
+                    // Original VIGIL artwork block (no external images).
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(132.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                linearGradientCompat()
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "V I G I L",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.7f)
+                            )
+                            Text(
+                                version,
+                                style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Black),
+                                color = Color.White
+                            )
+                            Text(
+                                "Discipline is a decision.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.75f)
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+
+                    Text(
+                        "Top Features",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = Color.White
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    notes.lineSequence()
+                        .map { it.trim().removePrefix("• ").removePrefix("- ") }
+                        .filter { it.isNotBlank() && !it.startsWith("#") }
+                        .take(6)
+                        .forEach { feature ->
+                            Row(Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
+                                Text("•", color = Color(0xFF0A84FF), modifier = Modifier.padding(end = 8.dp))
+                                Text(feature, style = MaterialTheme.typography.bodyMedium, color = Color(0xFFD8D8DE))
+                            }
+                        }
+
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Released $published  ·  $size",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF7E7E86),
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
                     )
                 }
 
-                Spacer(Modifier.height(14.dp))
+                // Divider
+                Box(Modifier.fillMaxWidth().height(0.5.dp).background(Color(0xFF3A3A3C)))
 
-                Text(
-                    if (download == null) "Update available" else "Downloading VIGIL $version",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    "Released $published  ·  $size",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                Spacer(Modifier.height(14.dp))
-
+                // Full-width actions, separated like iOS action sheets.
                 if (download == null) {
                     Text(
-                        notes,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier.fillMaxWidth()
+                        "Download & install",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                        color = Color(0xFF0A84FF),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onDownload() }
+                            .padding(vertical = 15.dp),
+                        textAlign = TextAlign.Center
                     )
-                } else {
-                    val pct = if (download.total > 0)
-                        (download.done * 100 / download.total).toInt().coerceIn(0, 100) else 0
-                    val animatedPct by animateIntAsState(pct, tween(240), label = "pct")
-                    LinearProgressIndicator(
-                        progress = {
-                            if (download.total > 0) download.done.toFloat() / download.total else 0f
-                        },
-                        modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(50)),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceContainer
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    Text(
-                        "$animatedPct%  ·  ${mb(download.done)} of ${mb(download.total)}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Box(Modifier.fillMaxWidth().height(0.5.dp).background(Color(0xFF3A3A3C)))
                 }
-
-                Spacer(Modifier.height(20.dp))
-
-                Button(
-                    onClick = if (download == null) onDownload else onCancel,
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape = RoundedCornerShape(26.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (download == null) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.surfaceContainer
-                    )
-                ) {
-                    Text(
-                        if (download == null) "Download & install" else "Cancel download",
-                        color = if (download == null) Color.White else MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                TextButton(
-                    onClick = onDismiss,
-                    enabled = download == null,
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text("Not now") }
+                Text(
+                    if (download == null) "Not now" else "Cancel download",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { if (download == null) onDismiss() else onCancel() }
+                        .padding(vertical = 15.dp),
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }
 }
 
-/** Compact iOS-style dock with a sliding selected pill. */
+@Composable
+private fun linearGradientCompat(): Brush = Brush.linearGradient(
+    listOf(Color(0xFF0A2A5E), Color(0xFF123A7A), Color(0xFF0A84FF))
+)
+
+/** Compact iOS dock. */
 @Composable
 private fun VigilNavBar(current: String, onSelect: (String) -> Unit) {
     Surface(

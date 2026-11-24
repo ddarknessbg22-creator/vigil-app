@@ -33,6 +33,7 @@ import com.vigil.app.data.datastore.Options
 import com.vigil.app.ui.VigilViewModel
 import com.vigil.app.ui.components.*
 import com.vigil.app.ui.components.IosSwitch
+import com.vigil.app.ui.components.SlideToConfirm
 import com.vigil.app.ui.theme.VigilIcons
 import java.time.LocalTime
 
@@ -216,7 +217,6 @@ private fun ChangeStartDateRow(
     onDone: () -> Unit
 ) {
     var confirming by remember { mutableStateOf(false) }
-    var ready by remember { mutableStateOf(false) }
 
     if (!confirming) {
         ActionRow("Change starting date") { confirming = true }
@@ -225,54 +225,31 @@ private fun ChangeStartDateRow(
 
     Surface(
         shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.error.copy(alpha = 0.12f),
+        color = MaterialTheme.colorScheme.error.copy(alpha = 0.10f),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
-                "This restarts your clean run from the date you choose. Past days stay in your journal, but the counter begins again. Are you sure?",
+                "This restarts your clean run from the date you choose. Past days stay in your journal, but the counter begins again.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.22f))
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onPress = {
-                                val start = System.currentTimeMillis()
-                                val released = tryAwaitRelease()
-                                if (released && System.currentTimeMillis() - start >= 2000) {
-                                    ready = true
-                                }
-                            }
-                        )
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    if (ready) "Ready — choose a new date" else "Hold for 2 seconds to continue",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                TextButton(onClick = { confirming = false; ready = false }) { Text("Cancel") }
-                Button(
-                    enabled = ready,
-                    onClick = {
-                        onDone()
-                        confirming = false
-                        ready = false
-                        pickStart(context, vm::start)
-                    }
-                ) { Text("Continue") }
+            SlideToConfirm(
+                text = "Slide to change start date",
+                icon = VigilIcons.chevronRight,
+                color = MaterialTheme.colorScheme.error,
+                onConfirm = {
+                    onDone()
+                    confirming = false
+                    pickStart(context, vm::start)
+                }
+            )
+            TextButton(onClick = { confirming = false }, modifier = Modifier.align(Alignment.End)) {
+                Text("Cancel")
             }
         }
     }
+
 }
 
 @Composable

@@ -1,11 +1,12 @@
 package com.vigil.app.ui.navigation
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,8 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vigil.app.ui.VigilViewModel
@@ -50,9 +54,6 @@ fun VigilApp(vm: VigilViewModel = viewModel()) {
     }
 
     VigilTheme(dark) {
-        // A single remembered tab and a plain `when` instead of a navigation
-        // back stack: no destination re-inflation, no stacked screens, no
-        // fade/slide work on every tap. Tab switches are immediate.
         var tab by rememberSaveable { mutableStateOf("Home") }
         val snackbar = remember { SnackbarHostState() }
         val update by vm.update.collectAsStateWithLifecycle()
@@ -63,76 +64,24 @@ fun VigilApp(vm: VigilViewModel = viewModel()) {
 
         val updateInfo = update
         if (updateInfo != null) {
-            val dl = download
-            AlertDialog(
-                onDismissRequest = { if (dl == null) vm.skipUpdate() },
-                title = { Text(if (dl == null) "Update available" else "Downloading update") },
-                text = {
-                    Column {
-                        if (dl == null) {
-                            Text("VIGIL ${updateInfo.version} is ready.", style = MaterialTheme.typography.bodyMedium)
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                "Released ${updateInfo.published}  ·  ${updateInfo.size}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            Text(updateInfo.notes, style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        } else {
-                            val pct = if (dl.total > 0)
-                                (dl.done * 100 / dl.total).toInt().coerceIn(0, 100) else 0
-                            if (dl.total > 0) {
-                                LinearProgressIndicator(
-                                    progress = { dl.done.toFloat() / dl.total },
-                                    modifier = Modifier.fillMaxWidth().height(6.dp),
-                                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                                )
-                            } else {
-                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth().height(6.dp))
-                            }
-                            Spacer(Modifier.height(10.dp))
-                            Text(
-                                if (dl.total > 0)
-                                    "$pct%  ·  ${mb(dl.done)} of ${mb(dl.total)}"
-                                else "${mb(dl.done)} downloaded",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(Modifier.height(6.dp))
-                            Text(
-                                "Keep the app open. The installer opens when it finishes.",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                },
-                confirmButton = {
-                    if (dl == null) {
-                        TextButton(onClick = { vm.downloadAndInstall(updateInfo) }) { Text("Download & install") }
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { if (dl == null) vm.skipUpdate() else vm.cancelDownload() }) {
-                        Text(if (dl == null) "Not now" else "Cancel")
-                    }
-                }
+            UpdateSheet(
+                version = updateInfo.version,
+                notes = updateInfo.notes,
+                published = updateInfo.published,
+                size = updateInfo.size,
+                download = download,
+                onDownload = { vm.downloadAndInstall(updateInfo) },
+                onCancel = { vm.cancelDownload() },
+                onDismiss = { vm.skipUpdate() }
             )
         }
 
         Scaffold(
-            snackbarHost = {
-                SnackbarHost(snackbar, modifier = Modifier.padding(bottom = 12.dp))
-            },
+            containerColor = MaterialTheme.colorScheme.background,
+            snackbarHost = { SnackbarHost(snackbar, modifier = Modifier.padding(bottom = 12.dp)) },
             bottomBar = { VigilNavBar(current = tab, onSelect = { tab = it }) }
         ) { padding ->
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            ) {
+            Box(Modifier.fillMaxSize().padding(padding)) {
                 when (tab) {
                     "Quotes" -> QuotesScreen(vm)
                     "Progress" -> ProgressScreen(vm)
@@ -144,7 +93,159 @@ fun VigilApp(vm: VigilViewModel = viewModel()) {
     }
 }
 
-/** Compact MIUI-style dock: soft selected pill, no expanding indicator. */
+/** iOS-style update sheet: spring entry, animated ring, breathing accent. */
+@Composable
+private fun UpdateSheet(
+    version: String,
+    notes: String,
+    published: String,
+    size: String,
+    download: VigilViewModel.DownloadProgress?,
+    onDownload: () -> Unit,
+    onCancel: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = { if (download == null) onDismiss() }
+    ) {
+        val entry = remember { Animatable(0f) }
+        LaunchedEffect(Unit) {
+            entry.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = 320f))
+        }
+
+        Surface(
+            shape = RoundedCornerShape(32.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 0.dp,
+            shadowElevation = 32.dp,
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .graphicsLayer {
+                    val eased = 1f - (1f - entry.value) * (1f - entry.value)
+                    alpha = eased
+                    scaleX = 0.9f + eased * 0.1f
+                    scaleY = 0.9f + eased * 0.1f
+                    translationY = (1f - eased) * 48f
+                }
+        ) {
+            Column(
+                Modifier.fillMaxWidth().padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    Modifier
+                        .size(width = 38.dp, height = 5.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.outline)
+                )
+
+                Spacer(Modifier.height(20.dp))
+
+                // Animated icon: ring scale + subtle rotation while downloading.
+                val infinite = rememberInfiniteTransition(label = "updatePulse")
+                val pulse by infinite.animateFloat(
+                    0.96f, 1.04f,
+                    infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+                    label = "pulse"
+                )
+                val rotation by infinite.animateFloat(
+                    -4f, 4f,
+                    infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+                    label = "tilt"
+                )
+                val iconScale = if (download == null) pulse else 1f
+
+                Box(
+                    Modifier
+                        .size(64.dp)
+                        .graphicsLayer {
+                            scaleX = iconScale
+                            scaleY = iconScale
+                            rotationZ = rotation
+                        }
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        if (download == null) VigilIcons.download else VigilIcons.trendingUp,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+
+                Spacer(Modifier.height(14.dp))
+
+                Text(
+                    if (download == null) "Update available" else "Downloading VIGIL $version",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    "Released $published  ·  $size",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(Modifier.height(14.dp))
+
+                if (download == null) {
+                    Text(
+                        notes,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    val pct = if (download.total > 0)
+                        (download.done * 100 / download.total).toInt().coerceIn(0, 100) else 0
+                    val animatedPct by animateIntAsState(pct, tween(240), label = "pct")
+                    LinearProgressIndicator(
+                        progress = {
+                            if (download.total > 0) download.done.toFloat() / download.total else 0f
+                        },
+                        modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(50)),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.surfaceContainer
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        "$animatedPct%  ·  ${mb(download.done)} of ${mb(download.total)}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Spacer(Modifier.height(20.dp))
+
+                Button(
+                    onClick = if (download == null) onDownload else onCancel,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(26.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (download == null) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.surfaceContainer
+                    )
+                ) {
+                    Text(
+                        if (download == null) "Download & install" else "Cancel download",
+                        color = if (download == null) Color.White else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                TextButton(
+                    onClick = onDismiss,
+                    enabled = download == null,
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Not now") }
+            }
+        }
+    }
+}
+
+/** Compact iOS-style dock with a sliding selected pill. */
 @Composable
 private fun VigilNavBar(current: String, onSelect: (String) -> Unit) {
     Surface(
@@ -154,42 +255,33 @@ private fun VigilNavBar(current: String, onSelect: (String) -> Unit) {
     ) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(MaterialTheme.colorScheme.outlineVariant))
         Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 8.dp),
+            Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             TABS.forEach { item ->
                 val selected = current == item.name
                 val pill by animateColorAsState(
-                    targetValue = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
-                    else Color.Transparent,
-                    animationSpec = tween(140),
-                    label = "navPill"
+                    if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else Color.Transparent,
+                    tween(160), label = "navPill"
                 )
                 val tint by animateColorAsState(
-                    targetValue = if (selected) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                    animationSpec = tween(140),
-                    label = "navTint"
+                    if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    tween(160), label = "navTint"
                 )
-
+                val scale by animateFloatAsState(if (selected) 1.06f else 1f, tween(160), label = "navScale")
                 Column(
-                    modifier = Modifier
+                    Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(18.dp))
                         .background(pill)
                         .clickable { onSelect(item.name) }
-                        .padding(vertical = 8.dp),
+                        .padding(vertical = 8.dp)
+                        .graphicsLayer { scaleX = scale; scaleY = scale },
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(item.icon, contentDescription = null, tint = tint, modifier = Modifier.size(21.dp))
                     Spacer(Modifier.height(3.dp))
-                    Text(
-                        item.name,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = tint
-                    )
+                    Text(item.name, style = MaterialTheme.typography.labelSmall, color = tint)
                 }
             }
         }

@@ -61,7 +61,8 @@ fun HomeScreen(vm: VigilViewModel) {
         Instant.ofEpochMilli(run.start).atZone(ZoneId.systemDefault()).toLocalDate() == today
     val all by vm.quotes.collectAsStateWithLifecycle()
     val o by vm.options.collectAsStateWithLifecycle()
-    val q = remember(all, today, time.hour, o.category) {
+    // Keyed on the day, so the featured quote doesn't churn every hour.
+    val q = remember(all, today, o.category) {
         Quotes.featured(all, time.toLocalDateTime(), o.category)
     }
     LaunchedEffect(q?.id) { q?.let { vm.seen(it.id) } }

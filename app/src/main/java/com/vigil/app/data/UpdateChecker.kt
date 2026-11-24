@@ -6,23 +6,11 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
+import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Locale
-
-@Serializable
-private data class GhAsset(val name: String, val size: Long = 0, val browser_download_url: String)
-
-@Serializable
-private data class GhRelease(
-    val tag_name: String,
-    val body: String? = null,
-    val published_at: String? = null,
-    val assets: List<GhAsset> = emptyList()
-)
 
 data class AppUpdate(
     val version: String,
@@ -32,38 +20,83 @@ data class AppUpdate(
     val url: String
 )
 
-/** Checks the project's GitHub releases for a newer APK. */
+/** Outcome of a manual or automatic update check. */
+sealed class UpdateResult {
+    data class Available(val update: AppUpdate) : UpdateResult()
+    data object UpToDate : UpdateResult()
+    data class Failed(val reason: String) : UpdateResult()
+}
+
+/**
+ * Checks the project's GitHub releases for a newer APK.
+ *
+ * Errors are surfaced explicitly — they must never be reported as "up to date".
+ */
 class UpdateChecker(private val context: Context) {
 
-    private val json = Json { ignoreUnknownKeys = true }
     private val repoOwner = "ddarknessbg22-creator"
     private val repoName = "vigil-app"
 
-    suspend fun latest(): AppUpdate? = withContext(Dispatchers.IO) {
-        runCatching {
+    suspend fun check(): UpdateResult = withContext(Dispatchers.IO) {
+        val text = try {
             val connection = URL("https://api.github.com/repos/$repoOwner/$repoName/releases/latest")
                 .openConnection() as HttpURLConnection
-            connection.connectTimeout = 8_000
-            connection.readTimeout = 8_000
+            connection.connectTimeout = 10_000
+            connection.readTimeout = 15_000
             connection.setRequestProperty("Accept", "application/vnd.github+json")
-            connection.inputStream.use { it.bufferedReader().readText() }
-                .let { json.decodeFromString<GhRelease>(it) }
-        }.getOrNull()?.let { release ->
-            val version = release.tag_name.trimStart('v', 'V')
-            val apk = release.assets.firstOrNull { it.name.endsWith(".apk") }
-                ?: return@let null
-            if (isNewer(version)) {
-                AppUpdate(
-                    version = version,
-                    notes = cleanNotes(release.body),
-                    size = formatSize(apk.size),
-                    published = release.published_at?.take(10)?.replace('-', '.') ?: "recently",
-                    url = apk.browser_download_url
-                )
-            } else {
-                null
+            connection.setRequestProperty("User-Agent", "VIGIL-Android")
+            try {
+                val code = connection.responseCode
+                if (code !in 200..299) {
+                    return@withContext UpdateResult.Failed("GitHub returned $code")
+                }
+                connection.inputStream.bufferedReader().use { it.readText() }
+            } finally {
+                connection.disconnect()
+            }
+        } catch (e: Exception) {
+            return@withContext UpdateResult.Failed("No connection to GitHub")
+        }
+
+        val release = try {
+            JSONObject(text)
+        } catch (e: Exception) {
+            return@withContext UpdateResult.Failed("Could not read the response")
+        }
+
+        val tag = release.optString("tag_name", "")
+        val version = tag.trimStart('v', 'V')
+        if (version.isBlank()) return@withContext UpdateResult.Failed("Release has no version")
+
+        if (!isNewer(version)) return@withContext UpdateResult.UpToDate
+
+        val assets = release.optJSONArray("assets")
+        var apkName = ""
+        var apkUrl = ""
+        var apkSize = 0L
+        if (assets != null) {
+            for (i in 0 until assets.length()) {
+                val a = assets.optJSONObject(i) ?: continue
+                val name = a.optString("name", "")
+                if (name.endsWith(".apk")) {
+                    apkName = name
+                    apkUrl = a.optString("browser_download_url", "")
+                    apkSize = a.optLong("size", 0L)
+                    break
+                }
             }
         }
+        if (apkUrl.isBlank()) return@withContext UpdateResult.Failed("Release has no APK")
+
+        UpdateResult.Available(
+            AppUpdate(
+                version = version,
+                notes = cleanNotes(release.optString("body", "")),
+                size = formatSize(apkSize),
+                published = release.optString("published_at", "").take(10).replace('-', '.'),
+                url = apkUrl
+            )
+        )
     }
 
     /** Downloads the release APK into private storage, reporting progress. */
@@ -72,8 +105,8 @@ class UpdateChecker(private val context: Context) {
             val dir = File(context.filesDir, "apk").apply { mkdirs() }
             val target = File(dir, "update.apk")
             val connection = URL(url).openConnection() as HttpURLConnection
-            connection.connectTimeout = 15_000
-            connection.readTimeout = 60_000
+            connection.connectTimeout = 20_000
+            connection.readTimeout = 90_000
             connection.instanceFollowRedirects = true
             try {
                 val total = connection.contentLengthLong
@@ -81,15 +114,14 @@ class UpdateChecker(private val context: Context) {
                     target.outputStream().use { output ->
                         val buffer = ByteArray(64 * 1024)
                         var done = 0L
-                        var lastReported = 0L
+                        var last = 0L
                         while (true) {
                             val n = input.read(buffer)
                             if (n <= 0) break
                             output.write(buffer, 0, n)
                             done += n
-                            // Throttle UI updates to every 128 KB.
-                            if (done - lastReported >= 131_072) {
-                                lastReported = done
+                            if (done - last >= 131_072) {
+                                last = done
                                 onProgress(done, total)
                             }
                         }
@@ -115,20 +147,18 @@ class UpdateChecker(private val context: Context) {
         }
     }
 
-    /** Turns GitHub release Markdown into plain, readable lines. */
-    private fun cleanNotes(raw: String?): String {
-        val cleaned = raw
-            ?.lineSequence()
-            ?.map { it
-                .replace(Regex("^#+\\s*"), "")            // headings
-                .replace("**", "")                          // bold
-                .replace(Regex("^\\s*[-*]\\s+"), "• ")     // bullets
-                .trim()
+    private fun cleanNotes(raw: String): String {
+        val cleaned = raw.lineSequence()
+            .map {
+                it.replace(Regex("^#+\\s*"), "")
+                    .replace("**", "")
+                    .replace(Regex("^\\s*[-*]\\s+"), "• ")
+                    .replace(Regex("\\[([^]]+)]\\([^)]+\\)"), "$1")
+                    .trim()
             }
-            ?.filter { it.isNotBlank() }
-            ?.joinToString("\n")
-            ?.take(600)
-            .orEmpty()
+            .filter { it.isNotBlank() && it != "What's new" && it != "Updating" }
+            .joinToString("\n")
+            .take(700)
         return cleaned.ifBlank { "Stability improvements and new motivation lines." }
     }
 
@@ -138,13 +168,8 @@ class UpdateChecker(private val context: Context) {
         else -> String.format(Locale.US, "%d KB", bytes / 1024)
     }
 
-    /** Manual check from Settings: reports even when there is no update. */
-    suspend fun checkNow(): Result<AppUpdate?> = runCatching { latest() }
-
     private fun isNewer(candidate: String): Boolean {
-        val parse = { value: String ->
-            value.split('.').mapNotNull { it.toIntOrNull() }
-        }
+        val parse = { value: String -> value.split('.').mapNotNull { it.toIntOrNull() } }
         val current = parse(com.vigil.app.BuildConfig.VERSION_NAME)
         val next = parse(candidate)
         for (i in 0 until maxOf(current.size, next.size)) {

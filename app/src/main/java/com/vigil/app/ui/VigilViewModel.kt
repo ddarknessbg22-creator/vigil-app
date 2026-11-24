@@ -36,16 +36,17 @@ class VigilViewModel(app:Application):AndroidViewModel(app){
     fun start(at:Long)=work("Your commitment starts here."){repo.start(at)}
     fun restart()=work("Your earlier progress is safe. This is a new beginning."){repo.restart()}
     fun reflect(note:String)=work("Today’s check-in is saved."){repo.reflect(note)}
-    fun checkUpdate(manual: Boolean = false)=viewModelScope.launch(Dispatchers.IO) {
-        updater.checkNow().fold(
-            onSuccess = { found ->
-                _update.value=found
-                if(manual && found==null) message.emit("You’re up to date.")
-            },
-            onFailure = {
-                if(manual) message.emit("Could not reach GitHub. Try again later.")
+    fun checkUpdate(manual: Boolean = false) = viewModelScope.launch(Dispatchers.IO) {
+        when (val result = updater.check()) {
+            is UpdateResult.Available -> _update.value = result.update
+            is UpdateResult.UpToDate -> {
+                _update.value = null
+                if (manual) message.emit("You’re up to date — v${com.vigil.app.BuildConfig.VERSION_NAME}.")
             }
-        )
+            is UpdateResult.Failed -> {
+                if (manual) message.emit("Update check failed: ${result.reason}")
+            }
+        }
     }
     fun skipUpdate(){_update.value=null}
 

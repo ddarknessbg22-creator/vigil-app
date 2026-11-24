@@ -5,17 +5,21 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -29,10 +33,10 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 /**
- * iOS-style switch.
+ * iOS-style switch. Both tap and drag work.
  *
- * The drag owns the thumb while it happens and only the parent's new value
- * animates it afterwards — no competing LaunchedEffect, no jumping back.
+ * A `dragging` guard stops the parent's state update from fighting the drag;
+ * when not dragging, the thumb always follows the `checked` value.
  */
 @Composable
 fun IosSwitch(
@@ -52,6 +56,19 @@ fun IosSwitch(
     val inset = 2.dp
 
     val progress = remember { Animatable(if (checked) 1f else 0f) }
+    var dragging by remember { mutableStateOf(false) }
+
+    // Sync thumb to the real value whenever the parent changes it — but not
+    // while the user's finger owns the thumb.
+    LaunchedEffect(checked) {
+        if (!dragging) {
+            progress.animateTo(
+                if (checked) 1f else 0f,
+                spring(dampingRatio = 0.86f, stiffness = 420f)
+            )
+        }
+    }
+
     val trackColor by animateColorAsState(
         if (checked) activeColor else Color(0xFF39393D),
         tween(180), label = "track"
@@ -63,18 +80,36 @@ fun IosSwitch(
             .height(trackH)
             .clip(RoundedCornerShape(50))
             .background(trackColor)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                enabled = enabled
+            ) {
+                val next = !checked
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                scope.launch {
+                    progress.animateTo(
+                        if (next) 1f else 0f,
+                        spring(dampingRatio = 0.86f, stiffness = 420f)
+                    )
+                }
+                onCheckedChange(next)
+            }
             .pointerInput(enabled) {
                 val thumbPx = with(density) { thumbD.toPx() }
                 val insetPx = with(density) { inset.toPx() }
                 val travel = (size.width - thumbPx - insetPx * 2).coerceAtLeast(1f)
 
                 detectHorizontalDragGestures(
+                    onDragStart = { dragging = true },
                     onHorizontalDrag = { _, dx ->
-                        val next = (progress.value + dx / travel).coerceIn(0f, 1f)
-                        scope.launch { progress.snapTo(next) }
+                        scope.launch {
+                            progress.snapTo((progress.value + dx / travel).coerceIn(0f, 1f))
+                        }
                     },
                     onDragEnd = {
                         val next = progress.value >= 0.5f
+                        dragging = false
                         scope.launch {
                             progress.animateTo(
                                 if (next) 1f else 0f,
@@ -87,18 +122,6 @@ fun IosSwitch(
                         }
                     }
                 )
-
-                detectTapGestures {
-                    val next = !checked
-                    scope.launch {
-                        progress.animateTo(
-                            if (next) 1f else 0f,
-                            spring(dampingRatio = 0.86f, stiffness = 420f)
-                        )
-                    }
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onCheckedChange(next)
-                }
             }
     ) {
         val thumbPx = with(density) { thumbD.toPx() }

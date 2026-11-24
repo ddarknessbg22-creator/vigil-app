@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -62,6 +63,12 @@ fun SlideToConfirm(
                 val thumbPx = with(density) { thumb.toPx() }
                 val padPx = with(density) { pad.toPx() }
                 val travel = (size.width - thumbPx - padPx * 2).coerceAtLeast(1f)
+
+                detectTapGestures {
+                    scope.launch { progress.animateTo(1f, spring(stiffness = 380f)) }
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onConfirm()
+                }
 
                 detectHorizontalDragGestures(
                     onHorizontalDrag = { _, dx ->

@@ -23,10 +23,8 @@ class MainActivity : ComponentActivity() {
         if (modes.isEmpty()) return
 
         val max = modes.maxOf { it.refreshRate }
-        val rates = modes.map { it.refreshRate }.distinct().toFloatArray()
         val params: WindowManager.LayoutParams = window.attributes
         params.preferredRefreshRate = max
-        params.supportedRefreshRates = rates
         window.attributes = params
     }
 }

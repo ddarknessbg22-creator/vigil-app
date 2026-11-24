@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vigil.app.data.Quotes
 import com.vigil.app.data.elapsed
+import com.vigil.app.domain.StreakVoice
 import com.vigil.app.data.room.Entry
 import com.vigil.app.ui.VigilViewModel
 import com.vigil.app.ui.components.Page
@@ -51,6 +52,13 @@ fun HomeScreen(vm: VigilViewModel) {
     val best = runs.map { ((it.end ?: now) - it.start).coerceAtLeast(0) / 86_400_000 }.maxOrNull() ?: 0L
     val nextTarget = listOf(7L, 14L, 30L, 60L, 90L, 180L, 365L)
         .firstOrNull { it > best } ?: 365L
+    val comebackCount = (runs.size - 1).coerceAtLeast(0)
+    val cleanDays = entries.count { !it.setback }
+    val firstEverPass = cleanDays <= 1 && check != null && !check.setback
+    val lastEnded = runs.firstOrNull { it.end != null }?.end
+    val justReturned = lastEnded != null && now - lastEnded <= 7L * 86_400_000 &&
+        run != null && elapsed.toDays() < 1 &&
+        Instant.ofEpochMilli(run.start).atZone(ZoneId.systemDefault()).toLocalDate() == today
     val all by vm.quotes.collectAsStateWithLifecycle()
     val o by vm.options.collectAsStateWithLifecycle()
     val q = remember(all, today, time.hour, o.category) {
@@ -77,6 +85,10 @@ fun HomeScreen(vm: VigilViewModel) {
             entries = entries,
             today = today,
             best = best,
+            comebackCount = comebackCount,
+            firstEverPass = firstEverPass,
+            justReturned = justReturned,
+            nextTarget = nextTarget,
             onSetStart = { pickStart(c, vm::start) }
         )
 
@@ -90,7 +102,7 @@ fun HomeScreen(vm: VigilViewModel) {
         Sheet(if (clean) "I passed today" else "I had a setback", { deciding = null }) {
             Text(
                 if (clean) "You stayed clean today. Add a thought if you want to remember it."
-                else "You reached ${elapsed.toDays().coerceAtLeast(0)} days last time. That time is real and it stays yours. Your best is $best days — next marker $nextTarget. Begin again from now.",
+                else StreakVoice.forReturn(elapsed.toDays().coerceAtLeast(0), best, nextTarget),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -134,6 +146,10 @@ private fun CleanCard(
     entries: List<Entry>,
     today: LocalDate,
     best: Long,
+    comebackCount: Int,
+    firstEverPass: Boolean,
+    justReturned: Boolean,
+    nextTarget: Long,
     onSetStart: () -> Unit
 ) {
     val days = if (run == null) 0L else elapsed.toDays().coerceAtLeast(0)
@@ -217,11 +233,8 @@ private fun CleanCard(
             }
 
             Text(
-                text = when {
-                    run == null -> "Every clean run starts somewhere. Choose your beginning."
-                    days < 1 -> "Today is day one. It counts."
-                    else -> "${elapsed.toHours() % 24} hours · ${elapsed.toMinutes() % 60} minutes clean today"
-                },
+                text = if (run == null) "Every clean run starts somewhere. Choose your beginning."
+                else StreakVoice.forDay(days, best, comebackCount, firstEverPass, justReturned),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

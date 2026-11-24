@@ -85,22 +85,13 @@ fun VigilApp(vm: VigilViewModel = viewModel()) {
             snackbarHost = { SnackbarHost(snackbar, modifier = Modifier.padding(bottom = 12.dp)) },
             bottomBar = { VigilNavBar(current = tab, onSelect = { tab = it }) }
         ) { padding ->
+            // iOS tab bars switch instantly — no crossfade of two full screens.
+            // Composing two screens at once (AnimatedContent) was the tab lag.
             Box(Modifier.fillMaxSize().padding(padding)) {
-                AnimatedContent(
-                    targetState = tab,
-                    transitionSpec = {
-                        // Quick, quiet crossfade with a gentle scale — iOS-like,
-                        // and cheap: only the two screens' layers are involved.
-                        (fadeIn(tween(220)) + scaleIn(tween(260), initialScale = 0.97f)) togetherWith
-                            (fadeOut(tween(150)) + scaleOut(tween(200), targetScale = 1.02f))
-                    },
-                    label = "tabTransition"
-                ) { current ->
-                    when (current) {
-                        "Progress" -> ProgressScreen(vm)
-                        "Settings" -> SettingsScreen(vm)
-                        else -> HomeScreen(vm)
-                    }
+                when (tab) {
+                    "Progress" -> ProgressScreen(vm)
+                    "Settings" -> SettingsScreen(vm)
+                    else -> HomeScreen(vm)
                 }
             }
         }

@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -23,6 +24,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
 import kotlin.math.roundToInt
 
 /** iOS-style switch: the thumb follows your finger and springs into place. */
@@ -36,6 +38,7 @@ fun IosSwitch(
 ) {
     val density = LocalDensity.current
     val haptic = LocalHapticFeedback.current
+    val scope = rememberCoroutineScope()
     val trackW = 51.dp
     val trackH = 31.dp
     val thumbD = 27.dp
@@ -59,11 +62,11 @@ fun IosSwitch(
 
                 detectHorizontalDragGestures(
                     onHorizontalDrag = { _, dx ->
-                        launch { progress.snapTo((progress.value + dx / travel).coerceIn(0f, 1f)) }
+                        scope.launch { progress.snapTo((progress.value + dx / travel).coerceIn(0f, 1f)) }
                     },
                     onDragEnd = {
                         val on = progress.value >= 0.5f
-                        launch {
+                        scope.launch {
                             progress.animateTo(
                                 if (on) 1f else 0f,
                                 spring(dampingRatio = 0.82f, stiffness = 380f)

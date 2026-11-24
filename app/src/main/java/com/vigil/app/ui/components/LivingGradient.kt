@@ -1,21 +1,18 @@
 package com.vigil.app.ui.components
 
+import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.drawRect
-import androidx.compose.ui.graphics.drawscope.withInfiniteAnimationFrameMillis
 import kotlin.math.PI
 import kotlin.math.sin
 
 /**
  * A slow, living blue gradient that animates entirely in the draw phase.
- *
- * No State is read during composition and no recomposition happens per frame —
- * the animation samples the frame clock directly, so it stays smooth even on
- * mid-range devices.
+ * No state is read during composition, so scrolling and animation never
+ * trigger recomposition.
  */
 fun Modifier.livingGradient(
     base: List<Color> = listOf(
@@ -29,25 +26,20 @@ fun Modifier.livingGradient(
 ): Modifier = this.drawBehind {
     val time = withInfiniteAnimationFrameMillis { it }
     val phase = (time % periodMs).toFloat() / periodMs.toFloat()
-    // Back-and-forth drift instead of a hard loop, so it never snaps.
     val drift = (sin(phase * 2f * PI) + 1f) / 2f
 
-    val startX = -size.width * (0.25f + drift * 0.5f)
-    val endX = size.width * (1.25f - drift * 0.35f)
     drawRect(
         brush = Brush.linearGradient(
             colors = base,
-            start = Offset(startX, 0f),
-            end = Offset(endX, size.height)
+            start = Offset(x = -size.width * (0.25f + drift * 0.5f), y = 0f),
+            end = Offset(x = size.width * (1.25f - drift * 0.35f), y = size.height)
         )
     )
 
-    // Soft moving highlight, like light crossing glass.
-    val glowX = size.width * (0.15f + drift * 0.7f)
     drawRect(
         brush = Brush.radialGradient(
             colors = listOf(glow.copy(alpha = 0.20f), Color.Transparent),
-            center = Offset(glowX, size.height * 0.18f),
+            center = Offset(x = size.width * (0.15f + drift * 0.7f), y = size.height * 0.18f),
             radius = size.width * 0.75f
         )
     )

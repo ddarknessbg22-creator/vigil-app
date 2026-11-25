@@ -16,6 +16,7 @@ import com.vigil.app.domain.StreakVoice
 import com.vigil.app.ui.VigilViewModel
 import com.vigil.app.ui.components.*
 import com.vigil.app.data.elapsed
+import com.vigil.app.data.streakDays
 import androidx.compose.ui.graphics.Color
 import com.vigil.app.ui.theme.VigilIcons
 import java.time.Instant
@@ -36,12 +37,8 @@ fun ProgressScreen(vm: VigilViewModel) {
 
     val today = Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault()).toLocalDate()
     val activeRun = runs.firstOrNull { it.end == null }
-    val raw = activeRun?.elapsed(now)?.toDays() ?: 0L
-    val cleanToday = entries.any { it.day == today.toString() && !it.setback }
-    val active = if (raw < 1L && activeRun != null && cleanToday) 1L else raw
-    val best = runs.maxOfOrNull {
-        ((it.end ?: now) - it.start).coerceAtLeast(0) / 86_400_000
-    } ?: 0L
+    val active = activeRun?.streakDays(now) ?: 0L
+    val best = runs.maxOfOrNull { it.streakDays(now) } ?: 0L
     val comebacks = (runs.size - 1).coerceAtLeast(0)
 
     Page("Progress", "V I G I L    /    Your record") {

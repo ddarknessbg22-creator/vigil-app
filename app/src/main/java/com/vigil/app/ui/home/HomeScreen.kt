@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vigil.app.data.Quotes
 import com.vigil.app.data.elapsed
+import com.vigil.app.data.streakDays
 import com.vigil.app.domain.StreakVoice
 import com.vigil.app.data.room.Entry
 import com.vigil.app.ui.VigilViewModel
@@ -48,9 +49,12 @@ fun HomeScreen(vm: VigilViewModel) {
     val run = runs.firstOrNull { it.end == null }
     val elapsed = run?.elapsed(now) ?: Duration.ZERO
 
+    // Calendar-day streak, shared by every surface — never a duration count.
+    val days = run?.streakDays(now) ?: 0L
+
     val entries by vm.entries.collectAsStateWithLifecycle()
     val check = remember(entries, today) { entries.firstOrNull { it.day == today.toString() } }
-    val best = runs.map { ((it.end ?: now) - it.start).coerceAtLeast(0) / 86_400_000 }.maxOrNull() ?: 0L
+    val best = runs.maxOfOrNull { it.streakDays(now) } ?: 0L
     val nextTarget = listOf(7L, 14L, 30L, 60L, 90L, 180L, 365L)
         .firstOrNull { it > best } ?: 365L
     val comebackCount = (runs.size - 1).coerceAtLeast(0)
@@ -58,12 +62,11 @@ fun HomeScreen(vm: VigilViewModel) {
     val firstEverPass = cleanDays <= 1 && check != null && !check.setback
     val lastEnded = runs.firstOrNull { it.end != null }?.end
     val justReturned = lastEnded != null && now - lastEnded <= 7L * 86_400_000 &&
-        run != null && elapsed.toDays() < 1 &&
+        run != null && days < 2 &&
         Instant.ofEpochMilli(run.start).atZone(ZoneId.systemDefault()).toLocalDate() == today
     val all by vm.quotes.collectAsStateWithLifecycle()
     val o by vm.options.collectAsStateWithLifecycle()
-    val streakDaysForVoice = if (run == null) 0L else
-        (now - run.start).coerceAtLeast(0) / 86_400_000
+    val streakDaysForVoice = days
     // Keyed on the day, so the featured quote doesn't churn every hour.
     val q = remember(all, today, o.category) {
         Quotes.featured(all, time.toLocalDateTime(), o.category)
@@ -89,6 +92,7 @@ fun HomeScreen(vm: VigilViewModel) {
             entries = entries,
             today = today,
             best = best,
+            days = days,
             comebackCount = comebackCount,
             firstEverPass = firstEverPass,
             justReturned = justReturned,
@@ -106,7 +110,7 @@ fun HomeScreen(vm: VigilViewModel) {
         Sheet(if (clean) "I passed today" else "I had a setback", { deciding = null }) {
             Text(
                 if (clean) "You stayed clean today. Add a thought if you want to remember it."
-                else StreakVoice.forReturn(elapsed.toDays().coerceAtLeast(0), best, nextTarget),
+                else StreakVoice.forReturn(days, best, nextTarget),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -150,6 +154,7 @@ private fun CleanCard(
     entries: List<Entry>,
     today: LocalDate,
     best: Long,
+    days: Long,
     comebackCount: Int,
     firstEverPass: Boolean,
     justReturned: Boolean,
@@ -157,10 +162,6 @@ private fun CleanCard(
     onSetStart: () -> Unit
 ) {
     val dayKeys = remember(entries) { entries.filter { !it.setback }.map { it.day }.toSet() }
-    val rawDays = if (run == null) 0L else elapsed.toDays().coerceAtLeast(0)
-    val todayLogged = dayKeys.contains(today.toString())
-    // Logging today clean makes it day one immediately — never show 0 after a pass.
-    val days = if (rawDays < 1L && todayLogged) 1L else rawDays
     val shown = days.toInt()
     val nextMilestone = listOf(7L, 14L, 30L, 60L, 90L, 180L, 365L)
         .firstOrNull { it > days } ?: 365L

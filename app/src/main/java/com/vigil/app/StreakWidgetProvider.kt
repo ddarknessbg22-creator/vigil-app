@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
+import com.vigil.app.data.room.VigilDatabase
 import com.vigil.app.data.streakDays
 import com.vigil.app.ui.main.MainActivity
 import kotlinx.coroutines.CoroutineScope

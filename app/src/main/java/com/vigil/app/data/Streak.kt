@@ -10,11 +10,9 @@ import java.time.temporal.ChronoUnit
 fun Run.elapsed(now: Long): Duration = Duration.ofMillis(((end ?: now) - start).coerceAtLeast(0L))
 
 /**
- * The number shown to the user: calendar days clean, inclusive of today.
- *
- * A run started at 11pm yesterday is already a 2-day streak the next morning.
- * Counting elapsed 24-hour blocks instead made the app show 0 for a whole day,
- * which felt like losing progress. Count dates, not milliseconds.
+ * Calendar days clean, inclusive of the last day.
+ * A run that ended on a setback date is passed an `end` already moved to the
+ * day before, so a failed day is never counted as clean.
  */
 fun Run.streakDays(now: Long = System.currentTimeMillis()): Long {
     val zone = ZoneId.systemDefault()
@@ -23,5 +21,17 @@ fun Run.streakDays(now: Long = System.currentTimeMillis()): Long {
     if (until.isBefore(from)) return 0L
     return ChronoUnit.DAYS.between(from, until) + 1
 }
+
+/** Last valid millisecond before a setback day — the old run stops here. */
+fun endBeforeSetback(setbackDate: LocalDate): Long =
+    setbackDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1
+
+/**
+ * A new run begins at the start of the day AFTER a setback.
+ * Until that date arrives, `streakDays` correctly reports 0 — the failed day
+ * is never day one of a new streak.
+ */
+fun nextRunStart(setbackDate: LocalDate): Long =
+    setbackDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
 val milestones = listOf(1L, 3L, 7L, 14L, 30L, 60L, 90L, 180L, 365L, 730L, 1000L)

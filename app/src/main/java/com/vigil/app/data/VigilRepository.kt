@@ -18,8 +18,12 @@ class VigilRepository(private val db:VigilDatabase,val prefs:PreferencesDataStor
         require(at >= (dao.latest()?.end?:0L)){"Choose a time after your last streak."};dao.save(Run(at))
     }
     suspend fun restart(now:Long=System.currentTimeMillis())=db.withTransaction {
-        val active=dao.latest();require(active!=null && active.end==null && now>active.start){"Check your device time before starting again."}
-        dao.save(active.copy(end=now));dao.save(Run(now));val day=LocalDate.now().toString();val entry=dao.entry(day)?:Entry(day,day,"");dao.save(entry.copy(setback=true))
+        val date=LocalDate.now()
+        val active=dao.latest()
+        require(active!=null && active.end==null && now>active.start){"Check your device time before starting again."}
+        dao.save(active.copy(end=endBeforeSetback(date)))
+        dao.save(Run(nextRunStart(date)))
+        val day=date.toString();val entry=dao.entry(day)?:Entry(day,day,"");dao.save(entry.copy(setback=true))
     }
     suspend fun reflect(note:String)=db.withTransaction { val day=LocalDate.now().toString();val entry=dao.entry(day)?:Entry(day,day,"");dao.save(entry.copy(note=note.trim().take(4000))) }
     /** Records today's outcome. A setback closes the current clean run and begins a new one. */
@@ -42,12 +46,13 @@ class VigilRepository(private val db:VigilDatabase,val prefs:PreferencesDataStor
             dao.save(entry.copy(note=text,setback=false,mood=5))
         }else{
             val active=dao.latest()
-            if(active!=null && active.end==null && now>active.start){
-                val startedToday=Instant.ofEpochMilli(active.start).atZone(ZoneId.systemDefault()).toLocalDate()==date
-                if(!startedToday){
-                    dao.save(active.copy(end=now))
-                    dao.save(Run(now))
-                }
+            if(active!=null && active.end==null){
+                // Never let the failed day count as clean: stop the old run
+                // on the day before, and begin the next run tomorrow.
+                dao.save(active.copy(end=endBeforeSetback(date)))
+                dao.save(Run(nextRunStart(date)))
+            }else {
+                dao.save(Run(nextRunStart(date)))
             }
             dao.save(entry.copy(note=text,setback=true,mood=1))
         }

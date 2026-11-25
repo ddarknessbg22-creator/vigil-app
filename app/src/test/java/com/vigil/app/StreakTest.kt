@@ -30,4 +30,16 @@ class StreakTest {
         val start=LocalDate.now(z).atStartOfDay(z).toInstant().toEpochMilli()
         assertEquals(1L, Run(start).streakDays(start + 60000))
     }
+    @Test fun failedDayNeverCountsAsStreak(){
+        val z=ZoneId.systemDefault()
+        val today=LocalDate.now(z)
+        val threeDaysAgo=today.minusDays(3).atStartOfDay(z).toInstant().toEpochMilli()
+        val old=Run(threeDaysAgo, endBeforeSetback(today))
+        // Four calendar dates elapsed, but the setback day is excluded -> 3.
+        assertEquals(3L, old.streakDays(today.atTime(23,0).atZone(z).toInstant().toEpochMilli()))
+        // New run begins tomorrow: today reports 0, tomorrow reports 1.
+        val fresh=Run(nextRunStart(today))
+        assertEquals(0L, fresh.streakDays(today.atTime(23,0).atZone(z).toInstant().toEpochMilli()))
+        assertEquals(1L, fresh.streakDays(today.plusDays(1).atTime(9,0).atZone(z).toInstant().toEpochMilli()))
+    }
 }

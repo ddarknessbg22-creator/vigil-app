@@ -66,7 +66,8 @@ class StreakTest {
         val older=(1..4).map { passed(today.minusDays(it.toLong())) }
         val setback=Entry(today.minusDays(1).toString(), today.minusDays(1).toString(), "", setback=true)
         val entries=older.filter { it.day != setback.day } + setback
-        assertEquals(0L, cleanStreak(entries, today))
+        // The run ended at the setback; the counter holds at the last clean run.
+        assertEquals(3L, cleanStreak(entries, today))
         assertEquals(3L, bestStreak(older))
     }
 }

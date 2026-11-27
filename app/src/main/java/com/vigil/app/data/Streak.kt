@@ -30,7 +30,10 @@ fun cleanStreak(
         .toSet()
     if (passed.isEmpty()) return 0L
 
-    var cursor = if (passed.contains(today)) today else today.minusDays(1)
+    // Anchor on the most recent clean day that is not in the future.
+    val anchor = passed.filter { !it.isAfter(today) }.maxOrNull()
+        ?: return 0L
+    var cursor = anchor
     var count = 0L
     while (passed.contains(cursor)) {
         count++

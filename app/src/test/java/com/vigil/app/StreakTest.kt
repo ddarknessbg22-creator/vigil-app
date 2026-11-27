@@ -1,6 +1,7 @@
 package com.vigil.app
 import com.vigil.app.data.*
 import com.vigil.app.data.room.Run
+import com.vigil.app.data.room.Entry
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.*
@@ -41,5 +42,31 @@ class StreakTest {
         val fresh=Run(nextRunStart(today))
         assertEquals(0L, fresh.streakDays(today.atTime(23,0).atZone(z).toInstant().toEpochMilli()))
         assertEquals(1L, fresh.streakDays(today.plusDays(1).atTime(9,0).atZone(z).toInstant().toEpochMilli()))
+    }
+
+    private fun passed(day: LocalDate) = Entry(day.toString(), day.toString(), "", setback = false)
+
+    @Test fun checkInMovesStreakImmediately(){
+        val today=LocalDate.now()
+        val yesterday=today.minusDays(1)
+        // Only yesterday logged: holds at 1 until today's decision.
+        assertEquals(1L, cleanStreak(listOf(passed(yesterday)), today))
+        // The moment today is logged clean, it becomes 2 — no clock waiting.
+        assertEquals(2L, cleanStreak(listOf(passed(yesterday), passed(today)), today))
+    }
+    @Test fun streakNeverAdvancesWithoutACheckIn(){
+        val today=LocalDate.now()
+        val two=today.minusDays(2)
+        val one=today.minusDays(1)
+        assertEquals(2L, cleanStreak(listOf(passed(two), passed(one)), today))
+        assertEquals(2L, cleanStreak(listOf(passed(two), passed(one)), today.plusDays(1)))
+    }
+    @Test fun setbackStopsTheRunAndBestIsPreserved(){
+        val today=LocalDate.now()
+        val older=(1..4).map { passed(today.minusDays(it.toLong())) }
+        val setback=Entry(today.minusDays(1).toString(), today.minusDays(1).toString(), "", setback=true)
+        val entries=older.filter { it.day != setback.day } + setback
+        assertEquals(0L, cleanStreak(entries, today))
+        assertEquals(3L, bestStreak(older))
     }
 }

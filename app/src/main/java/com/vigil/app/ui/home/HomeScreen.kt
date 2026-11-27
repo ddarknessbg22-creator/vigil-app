@@ -24,7 +24,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vigil.app.data.Quotes
 import com.vigil.app.data.elapsed
-import com.vigil.app.data.streakDays
+import com.vigil.app.data.cleanStreak
+import com.vigil.app.data.bestStreak
 import com.vigil.app.domain.StreakVoice
 import com.vigil.app.data.room.Entry
 import com.vigil.app.ui.VigilViewModel
@@ -47,14 +48,16 @@ fun HomeScreen(vm: VigilViewModel) {
     val today = time.toLocalDate()
     val runs by vm.runs.collectAsStateWithLifecycle()
     val run = runs.firstOrNull { it.end == null }
-    val elapsed = run?.elapsed(now) ?: Duration.ZERO
-
-    // Calendar-day streak, shared by every surface — never a duration count.
-    val days = run?.streakDays(now) ?: 0L
 
     val entries by vm.entries.collectAsStateWithLifecycle()
+
+    // Streak comes from the days you actually logged clean — it moves the
+    // moment you check in, not when the clock rolls over.
+    val days = cleanStreak(entries, today)
+    val best = bestStreak(entries)
+    val elapsed = run?.elapsed(now) ?: Duration.ZERO
+
     val check = remember(entries, today) { entries.firstOrNull { it.day == today.toString() } }
-    val best = runs.maxOfOrNull { it.streakDays(now) } ?: 0L
     val nextTarget = listOf(7L, 14L, 30L, 60L, 90L, 180L, 365L)
         .firstOrNull { it > best } ?: 365L
     val comebackCount = (runs.size - 1).coerceAtLeast(0)

@@ -8,7 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
 import com.vigil.app.data.room.VigilDatabase
-import com.vigil.app.data.streakDays
+import com.vigil.app.data.cleanStreak
+import com.vigil.app.data.bestStreak
 import com.vigil.app.ui.main.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,11 +44,9 @@ class StreakWidgetProvider : AppWidgetProvider() {
             scope.launch {
                 try {
                     val db = VigilDatabase.getInstance(context)
-                    val runs = withContext(Dispatchers.IO) { db.journal().runsOnce() }
-                    val now = System.currentTimeMillis()
-                    val active = runs.firstOrNull { it.end == null }
-                    val days = active?.streakDays(now) ?: 0L
-                    val best = runs.maxOfOrNull { it.streakDays(now) } ?: 0L
+                    val entries = withContext(Dispatchers.IO) { db.journal().entriesOnce() }
+                    val days = cleanStreak(entries)
+                    val best = bestStreak(entries)
 
                     val open = PendingIntent.getActivity(
                         context, 21,

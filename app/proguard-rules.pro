@@ -1,48 +1,31 @@
-# VIGIL ProGuard Rules
+# VIGIL R8 rules — minimal, correctness first.
 
-# Keep Hilt generated classes
--keep class dagger.hilt.** { *; }
--keep class com.vigil.app.Hilt_* { *; }
-
-# Keep Room entities and DAOs
+# Room: keep entities (reflectively constructed) and generated implementations.
 -keep class com.vigil.app.data.room.** { *; }
+-keep class * extends androidx.room.RoomDatabase { *; }
+-keep @androidx.room.Entity class * { *; }
+-keep @androidx.room.Dao interface * { *; }
 
-# Keep DataStore preferences
--keep class com.vigil.app.data.datastore.** { *; }
+# Kotlinx serialization generated serializers
+-keepattributes *Annotation*, InnerClasses, Signature
+-keep class kotlinx.serialization.json.** { *; }
+-keep class com.vigil.app.data.**$$serializer { *; }
+-keepclassmembers class com.vigil.app.data.** {
+    *** companion;
+}
+-keepclasseswithmembers class com.vigil.app.data.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
 
-# Keep WorkManager workers
--keep class com.vigil.app.blocking.worker.** { *; }
+# Compose / Android runtime reflectively instantiated classes
+-keep class com.vigil.app.ui.main.MainActivity { *; }
+-keep class com.vigil.app.StreakWidgetProvider { *; }
+-keep class com.vigil.app.ReminderReceiver { *; }
+-keep class com.vigil.app.VigilApplication { *; }
 
-# Keep VPN service
--keep class com.vigil.app.blocking.vpn.** { *; }
+# DataStore
+-keep class androidx.datastore.** { *; }
 
-# Keep serialization classes
--keep class kotlinx.serialization.** { *; }
-
-# Keep Coil
--keep class coil3.** { *; }
-
-# Keep Accompanist
--keep class com.google.accompanist.** { *; }
-
-# Keep Material3
--keep class androidx.compose.material3.** { *; }
-
-# Keep Navigation
--keep class androidx.navigation.** { *; }
-
-# Keep Lifecycle
--keep class androidx.lifecycle.** { *; }
-
-# Keep Coroutines
--keep class kotlinx.coroutines.** { *; }
-
-# Keep RxJava
--keep class io.reactivex.rxjava3.** { *; }
-
-# Suppress warnings
+# Coroutines debug suppressions
 -dontwarn kotlinx.coroutines.**
--dontwarn io.reactivex.rxjava3.**
 -dontwarn androidx.datastore.**
--dontwarn dagger.hilt.**
--dontwarn coil3.**
